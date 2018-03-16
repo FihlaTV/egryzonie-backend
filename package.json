@@ -6,17 +6,22 @@
   "repository": "git@github.com:eGryzonie/egryzonie-backend.git",
   "author": "Patryk Bernasiewicz <kontakt@patrykb.pl>",
   "license": "MIT",
+  "scripts": {
+    "start": "node app.js",
+    "start-dev": "nodemon app.js",
+    "lint": "eslint"
+  },
   "dependencies": {
     "assert": "^1.4.1",
     "express": "^4.16.3",
-    "mocha": "^5.0.4",
     "mongodb": "^3.0.4",
     "mongoose": "^5.0.10"
   },
   "devDependencies": {
     "eslint": "^4.18.2",
+    "mocha": "^5.0.4",
     "sinon": "^4.4.6",
     "sinon-mongoose": "^2.0.2",
-    "chai": "^4.1.2",
+    "chai": "^4.1.2"
   }
 }
