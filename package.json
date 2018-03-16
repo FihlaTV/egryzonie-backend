@@ -1,0 +1,22 @@
+{
+  "name": "egryzonie-backend",
+  "version": "1.0.0",
+  "description": "eGryzonie backend in node.js, express.js and mongodb",
+  "main": "app.js",
+  "repository": "git@github.com:eGryzonie/egryzonie-backend.git",
+  "author": "Patryk Bernasiewicz <kontakt@patrykb.pl>",
+  "license": "MIT",
+  "dependencies": {
+    "assert": "^1.4.1",
+    "express": "^4.16.3",
+    "mocha": "^5.0.4",
+    "mongodb": "^3.0.4",
+    "mongoose": "^5.0.10"
+  },
+  "devDependencies": {
+    "eslint": "^4.18.2",
+    "sinon": "^4.4.6",
+    "sinon-mongoose": "^2.0.2",
+    "chai": "^4.1.2",
+  }
+}
