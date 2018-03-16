@@ -1,8 +1,7 @@
 const router = require('express').Router();
 const { wrapAsync } = require('../helpers/async');
+const HomeController = require('../controllers/home');
 
-router.get('/', (req, res) => {
-  res.send('Welcome to eGryzonie API. You probably should not be here.');
-});
+router.get('/', HomeController.HomePage);
 
 module.exports = router;
