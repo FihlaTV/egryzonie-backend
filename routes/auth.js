@@ -2,17 +2,10 @@ const passport = require('passport');
 const router = require('express').Router();
 const { wrapAsync } = require('../helpers/async');
 const AuthController = require('../controllers/auth');
+const { jwtSession } = require('../config/secrets');
 
-const facebookMiddleware = (req, res, next) => {
-  console.log('Facebook middleware');
-  next();
-};
-
-router.get('/facebook', facebookMiddleware, passport.authenticate('facebook', { authType: 'rerequest', scope: ['email'] }));
-router.get('/facebook/callback', facebookMiddleware, passport.authenticate('facebook', {
-  successRedirect: '/',
-  failureRedirect: '/?error'
-}));
 router.get('/me', AuthController.Me);
+router.get('/facebook', passport.authenticate('facebook-token'), AuthController.FacebookToken);
+router.get('/jwt', passport.authenticate('jwt', jwtSession), AuthController.VerifyToken);
 
 module.exports = router;

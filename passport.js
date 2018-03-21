@@ -39,40 +39,42 @@ passport.use(new LocalStrategy(async (username, password, done) => {
 }));
 
 // Facebook Strategy
-const FacebookStrategy = require('passport-facebook').Strategy;
-passport.use(new FacebookStrategy({
+const FacebookTokenStrategy = require('passport-facebook-token');
+passport.use(new FacebookTokenStrategy({
   clientID: secrets.facebookAppId,
-  clientSecret: secrets.facebookSecret,
-  callbackURL: `${protocol}://${host}:${port}/auth/facebook/callback`,
-  profileFields: ['id', 'displayName', 'photos', 'email']
-},
-async (accessToken, refreshToken, profile, done) => {
-  try {
-    const foundUser = await User.findOne({ FacebookID: profile.id });
-    if (!foundUser) {
-      const newUser = new User({
-        FacebookID: profile.id,
-        Nickname: profile.displayName,
-        Email: profile.emails[0].value,
-        AvatarURL: profile.photos[0].value
-      });
-      await newUser.save();
-      return done(null, newUser);
-    } else {
+  clientSecret: secrets.facebookSecret
+}, async (accessToken, refreshToken, profile, done) => {
+  User.findOne({ FacebookID: profile.id })
+    .then((foundUser) => {
+      if (!foundUser) {
+        const createdUser = new User({
+          FacebookID: profile.id,
+          Nickname: profile.displayName,
+          Email: profile.emails[0].value,
+          AvatarURL: profile.photos[0].value
+        });
+        createdUser.save()
+          .then((user) => done(null, createdUser))
+          .catch((error) => done(null, false, {
+            message: `Error checking for existing user: ${error.message}`
+          }));
+        return;
+      }
       return done(null, foundUser);
-    }
-  } catch (error) {
-    return done(null, false, { message: 'invalid facebook login', error: error.message });
-  }
+    })
+    .catch((error) => done(null, false, {
+      message: `Error checking for existing user: ${error.message}`
+    }));
 }));
 
-passport.serializeUser((user, done) => {
-  console.log('SERIALIZE USER', user);
-  return done(null, user.id);
+passport.serializeUser(function(user, done) {
+  done(null, user.id);
 });
 
-passport.deserializeUser((id, done) => {
-  User.findById(id)
-    .then((user) => done(null, user))
-    .catch((error) => done(error, false));
+passport.deserializeUser(function(id, done) {
+  User.findById(id, function(err, user) {
+    done(err, user);
+  });
 });
+
+passport.initialize();

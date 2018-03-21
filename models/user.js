@@ -48,4 +48,10 @@ UserSchema.methods.validatePassword = function validatePassword(password) {
   return bcrypt.compare(password, this.password);
 };
 
+UserSchema.statics.getLoginData = function getLoginData(UserId) {
+  return this.model('users')
+    .findOne({ _id: UserId })
+    .select('_id Nickname Email Role AvatarURL');
+};
+
 mongoose.model('users', UserSchema);
