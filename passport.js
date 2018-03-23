@@ -9,6 +9,65 @@ const host = process.env.HOST;
 const port = process.env.PORT || process.env.FALLBACK_PORT;
 const protocol = process.env.USE_SSL === true ? 'https' : 'http';
 
+// OAuth2 profile callback
+function FacebookCallback(accessToken, refreshToken, profile, done) {
+  User.findOne({ FacebookID: profile.id })
+    .then((foundUser) => {
+      // Check if User exists
+      if (!foundUser) {
+        const createdUser = new User({
+          FacebookID: profile.id,
+          Nickname: profile.displayName,
+          Email: profile.emails[0].value,
+          AvatarURL: profile.photos[0].value
+        });
+        createdUser.save()
+          .then((user) => {
+            done(null, user);
+          })
+          .catch((error) => {
+            console.error(`Error while registering user via Facebook: ${error.message}`);
+            done(null, false, { message: `Error while registering user via Facebook: ${error.message}` });
+          });
+      } else {
+        done(null, foundUser);
+      }
+    })
+    .catch((error) => {
+      console.error(`Error authenticating through Facebook: ${error.message}`);
+      done(null, false, { message: `Error authenticating through Facebook: ${error.message}` });
+    });
+}
+
+function GoogleCallback(accessToken, refreshToken, profile, done) {
+  User.findOne({ GoogleID: profile.id })
+    .then((foundUser) => {
+      // Check if User exists
+      if (!foundUser) {
+        const createdUser = new User({
+          GoogleID: profile.id,
+          Nickname: profile.displayName,
+          Email: profile.emails[0].value,
+          AvatarURL: profile._json.picture
+        });
+        createdUser.save()
+          .then((user) => {
+            done(null, user);
+          })
+          .catch((error) => {
+            console.error(`Error while registering user via Google: ${error.message}`);
+            done(null, false, { message: `Error while registering user via Google: ${error.message}` });
+          });
+      } else {
+        done(null, foundUser);
+      }
+    })
+    .catch((error) => {
+      console.error(`Error authenticating through Google: ${error.message}`);
+      done(null, false, { message: `Error authenticating through Google: ${error.message}` });
+    });
+}
+
 // Token Authentication
 const { Strategy, ExtractJwt } = passportJWT;
 passport.use(new Strategy({
@@ -23,49 +82,90 @@ passport.use(new Strategy({
 
 // Local Strategy
 const LocalStrategy = require('passport-local');
-passport.use(new LocalStrategy(async (username, password, done) => {
-  try {
-    const user = await User.findOne({ username: username });
-    if (!user) {
-      return done(null, false, { message: 'invalid login' });
-    }
-    const validatePassword = await user.validatePassword(password);
-    if (!validatePassword) {
-      return done(null, false, { message: 'invalid login' });
-    }
-  } catch (error) {
-    return done(null, false, { message: 'invalid login', error: error.message });
+passport.use('local-signup', new LocalStrategy(
+  {
+    usernameField: 'email',
+    passwordField: 'password',
+    session: false,
+    passReqToCallback: true
+  },
+  (req, email, password, done) => {
+    User.findOne({ email })
+      .then((user) => {
+        if (user) {
+          console.error('User duplicate');
+          return done(null, false, { message: 'user duplicate' });
+        }
+        return User.hashPassword(password);
+      })
+      .then((hash) => {
+        const newUser = new User({
+          Nickname: req.body.nickname,
+          Email: email,
+          Password: hash
+        });
+        newUser.save()
+          .then((user) => {
+            return done(null, user);
+          })
+          .catch((error) => {
+            console.error('Local Signup error: ', error.message);
+            return done(null, false, { message: 'create user error' });
+          });
+      })
+      .catch((error) => {
+        console.error('Local Signup error: ', error.message);
+        return done(null, false, { message: 'create user error' });
+      });
   }
-}));
+));
 
-// Facebook Strategy
+passport.use('local-signin', new LocalStrategy(
+  {
+    usernameField: 'email',
+    passwordField: 'password',
+    session: false
+  },
+  (email, password, done) => {
+    User.findOne({ Email: email })
+      .then((user) => {
+        if (!user) {
+          console.log('No user found.');
+          return done(null, false, { message: 'invalid login' });
+        }
+        user.validatePassword(password)
+          .then((compare) => {
+            if (!compare) {
+              console.log('Invalid password.');
+              return done(null, false, { message: 'invalid login' });
+            }
+            return done(null, user);
+          })
+          .catch((error) => {
+            console.log('Local Signin Error: ', error.message);
+            return done(null, false, { message: 'invalid login' });
+          });
+      })
+      .catch((error) => {
+        console.log('Local Signin Error: ', error.message);
+        return done(null, false, { message: 'invalid login' });
+      });
+  }
+));
+
+// Facebook Token Strategy
 const FacebookTokenStrategy = require('passport-facebook-token');
 passport.use(new FacebookTokenStrategy({
   clientID: secrets.facebookAppId,
   clientSecret: secrets.facebookSecret
-}, async (accessToken, refreshToken, profile, done) => {
-  User.findOne({ FacebookID: profile.id })
-    .then((foundUser) => {
-      if (!foundUser) {
-        const createdUser = new User({
-          FacebookID: profile.id,
-          Nickname: profile.displayName,
-          Email: profile.emails[0].value,
-          AvatarURL: profile.photos[0].value
-        });
-        createdUser.save()
-          .then((user) => done(null, createdUser))
-          .catch((error) => done(null, false, {
-            message: `Error checking for existing user: ${error.message}`
-          }));
-        return;
-      }
-      return done(null, foundUser);
-    })
-    .catch((error) => done(null, false, {
-      message: `Error checking for existing user: ${error.message}`
-    }));
-}));
+}, FacebookCallback));
+
+// Google Token Strategy
+const GoogleTokenStrategy = require('passport-google-token').Strategy;
+passport.use(new GoogleTokenStrategy({
+  clientID: secrets.googleClientID,
+  clientSecret: secrets.googleSecret
+}, GoogleCallback));
 
 passport.serializeUser(function(user, done) {
   done(null, user.id);

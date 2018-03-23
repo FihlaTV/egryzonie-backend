@@ -4,5 +4,8 @@ module.exports = {
   googleSecret: '',
   googleMapsKey: '',
   facebookAppId: '',
-  facebookSecret: ''
+  facebookSecret: '',
+  jwtSecret: '',
+  jwtSession: { session: false },
+  jwtIssuer: ''
 };

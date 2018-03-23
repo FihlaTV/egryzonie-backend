@@ -5,16 +5,15 @@ const { Schema } = mongoose;
 const UserSchema = new Schema({
   FacebookID: {
     type: String,
-    unique: true
+    sparse: true,
   },
   GoogleID: {
     type: String,
-    unique: true
+    sparse: true
   },
   Nickname: {
     type: String,
     required: true,
-    unique: true,
     min: [5, 'nickname too short'],
     validate: {
       validator: (value) => /^([\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEFA-Za-z. -]{0,55})$/.test(value),
@@ -45,7 +44,21 @@ const UserSchema = new Schema({
 });
 
 UserSchema.methods.validatePassword = function validatePassword(password) {
-  return bcrypt.compare(password, this.password);
+  return bcrypt.compare(password, this.Password);
+};
+
+UserSchema.statics.hashPassword = (password) => {
+  return new Promise((resolve, reject) => {
+    bcrypt.genSalt()
+      .then((salt) => {
+        return bcrypt.hash(password, salt);
+      })
+      .then((hash) => resolve(hash))
+      .catch((error) => {
+        console.error('Error hashing password: ', error.message);
+        reject();
+      });
+  });
 };
 
 UserSchema.statics.getLoginData = function getLoginData(UserId) {
