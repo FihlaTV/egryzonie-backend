@@ -3,7 +3,7 @@ const router = require('express').Router();
 const { wrapAsync } = require('../helpers/async');
 const controller = require('../controllers/auth');
 const policies = require('../policies/auth');
-const { jwtSession } = require('../config/secrets');
+const { jwtSession } = require('../../config/secrets');
 
 router.get(
   '/me',

@@ -1,6 +1,6 @@
 const passport = require('passport');
 const passportJWT = require('passport-jwt');
-const secrets = require('./config/secrets');
+const secrets = require('../config/secrets');
 
 const mongoose = require('mongoose');
 const User = mongoose.model('users');

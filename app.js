@@ -32,18 +32,18 @@ app.use(morgan('dev', {
 }));
 
 // Errors Middleware
-require('./middlewares/error-handling')(app);
+require('./src/middlewares/error-handling')(app);
 
 // Mongoose models
-require('./models');
+require('./src/models');
 
 // Passport initialization
-require('./passport');
+require('./src/passport');
 app.use(passport.initialize());
 app.use(passport.session());
 
 // Routing
-require('./routing')(app);
+require('./src/routing')(app);
 
 // Server variables
 const host = process.env.HOST;

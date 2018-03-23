@@ -1,8 +1,9 @@
 const passport = require('passport');
 const jwt = require('jsonwebtoken');
-const secrets = require('../config/secrets');
 const mongoose = require('mongoose');
 const { MongoError } = require('mongodb');
+
+const secrets = require('../../config/secrets');
 const User = mongoose.model('users');
 
 function createToken(user) {
