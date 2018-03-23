@@ -37,6 +37,7 @@
     "morgan": "^1.9.0",
     "nodemon": "^1.17.2",
     "sinon": "^4.4.6",
-    "sinon-mongoose": "^2.0.2"
+    "sinon-mongoose": "^2.0.2",
+    "supertest": "^3.0.0"
   }
 }
