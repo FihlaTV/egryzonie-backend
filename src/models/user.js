@@ -14,9 +14,8 @@ const UserSchema = new Schema({
   Nickname: {
     type: String,
     required: true,
-    min: [5, 'nickname too short'],
     validate: {
-      validator: (value) => /^([\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEFA-Za-z. -]{0,55})$/.test(value),
+      validator: (value) => /^([\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEFA-Za-z. -]{5,55})$/.test(value),
       message: 'invalid nickname'
     }
   },
@@ -30,35 +29,39 @@ const UserSchema = new Schema({
     }
   },
   Password: {
-    type: String,
-    min: [5, 'password too short']
+    type: String
   },
   Role: {
     type: String,
     required: true,
-    default: 'user'
+    default: 'user',
+    validate: {
+      validator: (value) => ['superadmin', 'admin', 'moderator', 'user'].includes(value),
+      message: 'invalid role'
+    }
   },
   AvatarURL: {
-    type: String
+    type: String,
+    validate: {
+      validator: (value) => /^(https?:\/\/)?(www\.)?([\da-z\.-]+)\.([a-z\.]{2,6})\/[\w \.\/-]+?\.(jpeg|jpg|png)$/gi.test(value),
+      message: 'invalid image URL'
+    }
   }
+});
+
+UserSchema.pre('save', function() {
+  return bcrypt.genSalt()
+    .then((salt) => {
+      return bcrypt.hash(this.Password, salt);
+    })
+    .then((hash) => this.Password = hash)
+    .catch((error) => {
+      console.error('Error hashing password: ', error.message);
+    });
 });
 
 UserSchema.methods.validatePassword = function validatePassword(password) {
   return bcrypt.compare(password, this.Password);
-};
-
-UserSchema.statics.hashPassword = (password) => {
-  return new Promise((resolve, reject) => {
-    bcrypt.genSalt()
-      .then((salt) => {
-        return bcrypt.hash(password, salt);
-      })
-      .then((hash) => resolve(hash))
-      .catch((error) => {
-        console.error('Error hashing password: ', error.message);
-        reject();
-      });
-  });
 };
 
 UserSchema.statics.getLoginData = function getLoginData(UserId) {
