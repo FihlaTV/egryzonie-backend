@@ -1,10 +1,11 @@
 const router = require('express').Router();
+const passport = require('passport');
 const { wrapAsync } = require('../helpers/async');
-const profile = require('../policies/profile');
 const controller = require('../controllers/profile');
+const { jwtSession } = require('../../config/secrets');
 
-router.get('/', controller.MyProfile);
-router.put('/', controller.UpdateProfile);
-router.get('/:userId', controller.UserProfile);
+router.get('/', passport.authenticate('jwt', jwtSession), controller.MyProfile);
+router.put('/', passport.authenticate('jwt', jwtSession), controller.UpdateProfile);
+router.get('/:UserId', controller.UserProfile);
 
 module.exports = router;

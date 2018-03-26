@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
 const UserSchema = new Schema({
-  User: {
+  UserId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'users',
     required: true
@@ -51,4 +51,4 @@ const UserSchema = new Schema({
   }
 });
 
-mongoose.model('users', UserSchema);
+mongoose.model('profiles', UserSchema);
