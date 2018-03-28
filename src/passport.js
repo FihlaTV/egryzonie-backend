@@ -130,24 +130,20 @@ passport.use('local-signin', new LocalStrategy(
     User.findOne({ Email: email })
       .then((user) => {
         if (!user) {
-          console.log('No user found.');
           return done(null, false, { message: 'invalid login' });
         }
         user.validatePassword(password)
           .then((compare) => {
             if (!compare) {
-              console.log('Invalid password.');
               return done(null, false, { message: 'invalid login' });
             }
             return done(null, user);
           })
           .catch((error) => {
-            console.log('Local Signin Error: ', error.message);
             return done(null, false, { message: 'invalid login' });
           });
       })
       .catch((error) => {
-        console.log('Local Signin Error: ', error.message);
         return done(null, false, { message: 'invalid login' });
       });
   }

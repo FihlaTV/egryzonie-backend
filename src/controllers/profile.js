@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const { MongoError } = require('mongodb');
 const User = mongoose.model('users');
 const Profile = mongoose.model('profiles');
+const { ValidationError } = require('../helpers/errors');
 
 exports.MyProfile = (req, res, next) => {
   Profile.findOne({ UserId: req.user._id })
@@ -24,12 +25,12 @@ exports.UpdateProfile = (req, res, next) => {
   Profile.findOneAndUpdate(
     { UserId: req.user._id },
     { FullName, PublicEmail, FacebookURL, TwitterURL, InstagramURL, YouTubeURL, IsOrganization },
-    { upsert: true }
+    { upsert: true, new: true, runValidators: true }
   )
     .then((profile) => {
       return res.status(200).json(profile);
     })
-    .catch((error) => next(new Error(`Could not update user profile data. ${error.message}`)));
+    .catch((error) => next(new ValidationError(`Could not update user profile data. ${error.message}`)));
 };
 
 exports.UserProfile = (req, res, next) => {

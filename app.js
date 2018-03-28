@@ -18,8 +18,6 @@ app.use(cors());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
-console.log(env);
-
 if (env === 'development') {
   app.use(morgan('dev', {
     skip: (req, res) => {
@@ -36,9 +34,6 @@ if (env === 'development') {
   }));
 }
 
-// Errors Middleware
-require('./src/middlewares/error-handling')(app);
-
 // Mongoose models
 require('./src/models');
 
@@ -49,6 +44,9 @@ app.use(passport.session());
 
 // Routing
 require('./src/routing')(app);
+
+// Errors Middleware
+require('./src/middlewares/error-handling')(app);
 
 // Server variables
 const host = process.env.HOST;
