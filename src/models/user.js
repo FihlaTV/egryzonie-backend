@@ -15,7 +15,7 @@ const UserSchema = new Schema({
     type: String,
     required: true,
     validate: {
-      validator: (value) => /^([\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEFA-Za-z. -]{5,55})$/.test(value),
+      validator: (value) => /^([\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEFA-Za-z0-9._-]{5,55})$/g.test(value),
       message: 'invalid nickname'
     }
   },

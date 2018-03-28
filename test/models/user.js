@@ -14,13 +14,8 @@ describe('User Model', () => {
   before((done) => {
     mongoose.connect('mongodb://localhost/egryzonie-test');
     mongoose.connection
-      .once('open', () => {
-        console.log('MongoDB connected');
-        done();
-      })
-      .on('error', (error) => {
-        console.error('Connection error: ', error.message);
-      });
+      .once('open', () => done())
+      .on('error', (error) => console.error('Connection error: ', error.message));
   });
 
   beforeEach((done) => {

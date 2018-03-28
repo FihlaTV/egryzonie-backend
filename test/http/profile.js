@@ -1,4 +1,4 @@
-const { describe, it, before } = require('mocha');
+const { describe, it, beforeEach } = require('mocha');
 const { expect } = require('chai');
 const request = require('supertest');
 const faker = require('faker');
@@ -7,14 +7,16 @@ const login = require('../login');
 
 describe('/profile routes', () => {
   let app;
-  let token;
-  before(function(done) {
+  let jwtToken;
+  let testUser;
+  beforeEach(function(done) {
     this.timeout(5000);
     server.then((startedApp) => {
       app = startedApp;
       login(request, app)
-        .then(jwtToken => {
-          token = jwtToken;
+        .then(({ token, user }) => {
+          jwtToken = token;
+          testUser = user;
           done();
         });
     });
@@ -34,9 +36,9 @@ describe('/profile routes', () => {
     it('gets status 200 when token is present', (done) => {
       request(app)
         .get('/profile')
-        .set('Authorization', `Bearer ${token}`)
-        .expect(200, done);
-    });
+        .set('Authorization', `Bearer ${jwtToken}`)
+        .expect(200);
+    }).timeout(5000);
   });
 
   describe('PUT /profile', () => {
@@ -52,8 +54,8 @@ describe('/profile routes', () => {
       };
       request(app)
         .put('/profile')
+        .set('Authorization', `Bearer ${jwtToken}`)
         .send(newProfile)
-        .set('Authorization', `Bearer ${token}`)
         .end((err, res) => {
           expect(res.body.FullName).to.equal(newProfile.FullName);
           expect(res.body.PublicEmail).to.equal(newProfile.PublicEmail);
@@ -78,10 +80,18 @@ describe('/profile routes', () => {
       request(app)
         .put('/profile')
         .send(newProfile)
-        .set('Authorization', `Bearer ${token}`)
+        .set('Authorization', `Bearer ${jwtToken}`)
         .end((err, res) => {
           done();
         });
+    });
+  });
+
+  describe('GET /profile/:UserId', (done) => {
+    it('is accessible without user logged in', () => {
+      request(app)
+        .get(`/profile/${testUser._id}`)
+        .expect(200, done);
     });
   });
 });

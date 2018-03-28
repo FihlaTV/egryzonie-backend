@@ -93,16 +93,12 @@ passport.use('local-signup', new LocalStrategy(
     User.findOne({ email })
       .then((user) => {
         if (user) {
-          console.error('User duplicate');
           return done(null, false, { message: 'user duplicate' });
         }
-        return User.hashPassword(password);
-      })
-      .then((hash) => {
         const newUser = new User({
           Nickname: req.body.nickname,
           Email: email,
-          Password: hash
+          Password: password
         });
         newUser.save()
           .then((user) => {
