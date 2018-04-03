@@ -1,6 +1,6 @@
 const { AssertionError } = require('assert');
 const { MongoError } = require('mongodb');
-const { ValidationError } = require('../helpers/errors');
+const { ValidationError, NotFoundError } = require('../helpers/errors');
 
 module.exports = (app) => {
   app.use(function handleAssertionError(error, req, res, next) {
@@ -27,6 +27,16 @@ module.exports = (app) => {
     if (error instanceof ValidationError) {
       return res.status(400).json({
         type: 'Validation Error',
+        message: error.message
+      });
+    }
+    next(error);
+  });
+
+  app.use(function notFoundError(error, req, res, next) {
+    if (error instanceof NotFoundError) {
+      return res.status(404).json({
+        type: 'NotFound Error',
         message: error.message
       });
     }

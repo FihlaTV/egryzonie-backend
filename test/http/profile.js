@@ -1,44 +1,57 @@
-const { describe, it, beforeEach } = require('mocha');
+const { describe, it, beforeEach, before } = require('mocha');
 const { expect } = require('chai');
 const request = require('supertest');
 const faker = require('faker');
 const server = require('../../app');
-const login = require('../login');
+const { signUp } = require('../helpers');
 
-describe('/profile routes', () => {
+describe('/profile routes', function() {
+  this.timeout(10000);
+
   let app;
-  let jwtToken;
-  let testUser;
-  beforeEach(function(done) {
-    this.timeout(5000);
-    server.then((startedApp) => {
-      app = startedApp;
-      login(request, app)
-        .then(({ token, user }) => {
-          jwtToken = token;
-          testUser = user;
-          done();
-        });
-    });
+  let mongoose;
+  let user;
+  let token;
+
+  before(async () => {
+    ({ app, mongoose } = await server.catch(err => console.error(err)));
+    ({ user, token } = await signUp(app, request).catch(err => console.error(err)));
   });
   
   describe('GET /profile', () => {
     it('gets status 401 without valid token', (done) => {
       request(app)
         .get('/profile')
-        .expect(401, done);
+        .expect(401)
+        .end((err, res) => {
+          if (err) throw err;
+          expect(res.body).to.exist;
+          done();
+        });
     });
     it('gets status 401 with invalid token', (done) => {
       request(app)
         .get('/profile')
-        .expect(401, done);
+        .set('Authorization', 'Bearer invalidToken')
+        .expect(401)
+        .end((err, res) => {
+          if (err) throw err;
+          expect(res.body).to.exist;
+          done();
+        });
     });
     it('gets status 200 when token is present', (done) => {
       request(app)
         .get('/profile')
-        .set('Authorization', `Bearer ${jwtToken}`)
-        .expect(200);
-    }).timeout(5000);
+        .set('Authorization', `Bearer ${token}`)
+        .expect(201)
+        .end((err, res) => {
+          if (err) throw err;
+          expect(res.body).to.exist;
+          expect(res.headers).to.exist;
+          done();
+        });
+    });
   });
 
   describe('PUT /profile', () => {
@@ -54,9 +67,10 @@ describe('/profile routes', () => {
       };
       request(app)
         .put('/profile')
-        .set('Authorization', `Bearer ${jwtToken}`)
+        .set('Authorization', `Bearer ${token}`)
         .send(newProfile)
         .end((err, res) => {
+          if (err) throw err;
           expect(res.body.FullName).to.equal(newProfile.FullName);
           expect(res.body.PublicEmail).to.equal(newProfile.PublicEmail);
           expect(res.body.FacebookURL).to.equal(newProfile.FacebookURL);
@@ -80,18 +94,31 @@ describe('/profile routes', () => {
       request(app)
         .put('/profile')
         .send(newProfile)
-        .set('Authorization', `Bearer ${jwtToken}`)
+        .set('Authorization', `Bearer ${token}`)
         .end((err, res) => {
+          if (err) throw err;
           done();
         });
     });
   });
 
-  describe('GET /profile/:UserId', (done) => {
-    it('is accessible without user logged in', () => {
-      request(app)
-        .get(`/profile/${testUser._id}`)
-        .expect(200, done);
+  describe('GET /profile/:UserId', () => {
+    it('is accessible without user logged in', (done) => {
+      const User = mongoose.model('users');
+      User.findOne({})
+        .then((user) => {
+          expect(user).to.have.property('_id');
+
+          request(app)
+            .get(`/profile/${user._id}`)
+            .expect(200)
+            .end((err, res) => {
+              if (err) throw err;
+              expect(res.body).to.have.property('FullName');
+              done();
+            });
+        })
+        .catch((err) => { throw err; });
     });
   });
 });

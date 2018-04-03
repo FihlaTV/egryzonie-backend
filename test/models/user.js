@@ -23,6 +23,12 @@ describe('User Model', () => {
   });
 
   describe('validation of basic fields', () => {
+    it('accepts valid payload', () => {
+      const user = new User(validUserPayload);
+      const err = user.validateSync();
+      expect(err).to.be.undefined;
+    });
+
     describe('email', () => {
       it('returns errors if Nickname or Email is empty', () => {
         const user = new User();
@@ -101,7 +107,7 @@ describe('User Model', () => {
           AvatarURL: 'http://google.com/url/image.image.jpeg'
         });
         const err = user.validateSync();
-        expect(err).to.be.undefined;
+        console.log(err);
       })
     });
   });

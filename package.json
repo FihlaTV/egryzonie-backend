@@ -7,8 +7,8 @@
   "author": "Patryk Bernasiewicz <kontakt@patrykb.pl>",
   "license": "MIT",
   "scripts": {
-    "start": "cross-env NODE_ENV=production node app.js",
-    "start-dev": "cross-env NODE_ENV=development nodemon app.js",
+    "start": "cross-env NODE_ENV=production node start.js",
+    "start-dev": "cross-env NODE_ENV=development nodemon start.js",
     "lint": "eslint",
     "test": "cross-env NODE_ENV=test mocha --recursive --exit"
   },

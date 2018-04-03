@@ -4,24 +4,20 @@ const request = require('supertest');
 const faker = require('faker');
 const server = require('../../app');
 
-describe('/auth routes', () => {
+describe('/auth routes', function () {
+  this.timeout(5000);
+  
   let app;
-  let testUser;
-  before(function(done) {
-    this.timeout(5000);
-    server.then((response) => {
-      app = response.app;
-      response.mongoose.connection.db.dropDatabase()
-        .then((_) => done());
-    });
-    testUser = {
-      nickname: faker.internet.userName(),
-      email: faker.internet.email(),
-      password: faker.internet.password()
-    };
+  const testUser = {
+    nickname: faker.internet.userName(),
+    email: faker.internet.email(),
+    password: faker.internet.password()
+  };
+  before(async () => {
+    app = await server.catch(err => console.error(err));
   });
 
-  describe('POST /auth/signup', (done) => {
+  describe('POST /auth/signup', () => {
     it('can sign up new user', (done) => {
       request(app)
         .post('/auth/signup')
@@ -34,7 +30,7 @@ describe('/auth routes', () => {
     });
   });
 
-  describe('POST /auth/signin', (done) => {
+  describe('POST /auth/signin', () => {
     it('can sing in created user', (done) => {
       request(app)
         .post('/auth/signin')

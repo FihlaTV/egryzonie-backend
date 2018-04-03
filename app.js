@@ -7,7 +7,7 @@ const passport = require('passport');
 const cors = require('cors');
 const morgan = require('morgan');
 
-console.log(process.env.NODE_ENV);
+console.log('Current environment: ', process.env.NODE_ENV);
 
 // Logger
 const logger = require('./src/logger');
@@ -52,9 +52,7 @@ const host = process.env.HOST;
 const port = process.env.PORT || process.env.FALLBACK_PORT;
 const protocol = process.env.USE_SSL === true ? 'https' : 'http';
 
-// Start the server
 module.exports = new Promise(async (resolve, reject) => {
-  console.log('trying to start server');
   try {
     await mongoose.connect(`mongodb://${process.env.MONGO_HOST}/${process.env.MONGO_DB}`);
     if (process.env.NODE_ENV === 'test') {
@@ -67,6 +65,6 @@ module.exports = new Promise(async (resolve, reject) => {
     });
   } catch (error) {
     console.error(error.message);
-    reject();
+    throw error;
   }
 });
