@@ -13,3 +13,4 @@ class NotFoundError extends Error {
 }
 
 exports.ValidationError = ValidationError;
+exports.NotFoundError = NotFoundError;
