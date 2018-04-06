@@ -14,16 +14,6 @@ function createToken(user) {
   });
 }
 
-exports.Me = (error, req, res, next) => {
-  User.findOne({ _id: req.user.id })
-    .select('Id Nickname Email Role AvatarURL')
-    .then(user => {
-      if (!user) return Promise.reject(new NotFoundError('You do not exist.'));
-      return res.json({ user });
-    })
-    .catch(err => next(err));
-};
-
 exports.CreateToken = (req, res, next) => {
   if (!req.user) return next(new Error('Could not create token.'));
   const jwtToken = createToken(req.user);

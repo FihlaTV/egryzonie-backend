@@ -4,17 +4,21 @@ const User = mongoose.model('users');
 const Profile = mongoose.model('profiles');
 const { ValidationError, NotFoundError } = require('../helpers/errors');
 
+function createEmptyProfile(UserId) {
+  return new Profile({ UserId });
+}
+
 exports.MyProfile = (req, res, next) => {
   Profile
     .findOne({ UserId: req.user._id })
     .then(profile => {
       if (!profile) {
-        const newProfile = new Profile({ UserId: req.user._id });
+        const newProfile = createEmptyProfile(req.user._id);
         return newProfile.save();
       }
       return Promise.resolve(profile);
     })
-    .then(profile=> {
+    .then(profile => {
       return res.status(200)
         .json(profile);
     })
@@ -43,7 +47,7 @@ exports.UserProfile = (req, res, next) => {
     })
     .then(profile => {
       if (!profile) {
-        const newProfile = new Profile({ UserId: req.user._id });
+        const newProfile = createEmptyProfile(UserId);
         return newProfile.save();
       }
       return Promise.resolve(profile);

@@ -34,11 +34,4 @@ router.get(
   controller.VerifyToken
 );
 
-router.get(
-  '/me',
-  passport.authenticate('jwt'),
-  controller.Me
-);
-
-
 module.exports = router;

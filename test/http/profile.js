@@ -19,17 +19,12 @@ describe('/profile routes', function() {
   });
   
   describe('GET /profile', () => {
-    it('gets status 401 without valid token', (done) => {
+    it('gets status 401 (Unauthorized) without valid token', (done) => {
       request(app)
         .get('/profile')
-        .expect(401)
-        .end((err, res) => {
-          if (err) throw err;
-          expect(res.body).to.exist;
-          done();
-        });
+        .expect(401, done);
     });
-    it('gets status 401 with invalid token', (done) => {
+    it('gets status 401 (Unauthorized) with invalid token', (done) => {
       request(app)
         .get('/profile')
         .set('Authorization', 'Bearer invalidToken')
@@ -40,11 +35,11 @@ describe('/profile routes', function() {
           done();
         });
     });
-    it('gets status 200 when token is present', (done) => {
+    it('gets status 200 (OK) when token is present', (done) => {
       request(app)
         .get('/profile')
         .set('Authorization', `Bearer ${token}`)
-        .expect(201)
+        .expect(200)
         .end((err, res) => {
           if (err) throw err;
           expect(res.body).to.exist;
@@ -55,7 +50,7 @@ describe('/profile routes', function() {
   });
 
   describe('PUT /profile', () => {
-    it('can update Profile', (done) => {
+    it('returns 204 (No content) on valid payload', (done) => {
       const newProfile = {
         FullName: faker.name.firstName() + ' ' + faker.name.lastName(),
         PublicEmail: faker.internet.email(),
@@ -71,17 +66,11 @@ describe('/profile routes', function() {
         .send(newProfile)
         .end((err, res) => {
           if (err) throw err;
-          expect(res.body.FullName).to.equal(newProfile.FullName);
-          expect(res.body.PublicEmail).to.equal(newProfile.PublicEmail);
-          expect(res.body.FacebookURL).to.equal(newProfile.FacebookURL);
-          expect(res.body.TwitterURL).to.equal(newProfile.TwitterURL);
-          expect(res.body.InstagramURL).to.equal(newProfile.InstagramURL);
-          expect(res.body.YouTubeURL).to.equal(newProfile.YouTubeURL);
-          expect(res.body.IsOrganization).to.equal(newProfile.IsOrganization === 'on' ? true : false);
+          expect(res.status).to.equal(204);
           done();
         });
     });
-    it('will not update Profile when data is invalid', (done) => {
+    it('returns 400 (Bad request) on invalid payload', (done) => {
       const newProfile = {
         FullName: 'Some Random Username',
         PublicEmail: 'some#invalid@emaill.com',
@@ -97,6 +86,9 @@ describe('/profile routes', function() {
         .set('Authorization', `Bearer ${token}`)
         .end((err, res) => {
           if (err) throw err;
+          expect(res.status).to.equal(400);
+          expect(res.body).to.have.property('type');
+          expect(res.body).to.have.property('message');
           done();
         });
     });
@@ -114,7 +106,7 @@ describe('/profile routes', function() {
             .expect(200)
             .end((err, res) => {
               if (err) throw err;
-              expect(res.body).to.have.property('FullName');
+              expect(res.body).to.have.property('UserId');
               done();
             });
         })

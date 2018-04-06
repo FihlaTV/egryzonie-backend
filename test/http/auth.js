@@ -14,11 +14,11 @@ describe('/auth routes', function () {
     password: faker.internet.password()
   };
   before(async () => {
-    app = await server.catch(err => console.error(err));
+    ({ app } = await server.catch(err => console.error(err)));
   });
 
   describe('POST /auth/signup', () => {
-    it('can sign up new user', (done) => {
+    it('returns 201 (Created) and returns jwt token on valid payload', (done) => {
       request(app)
         .post('/auth/signup')
         .send(testUser)
@@ -28,10 +28,25 @@ describe('/auth routes', function () {
           done();
         });
     });
+    it('returns 401 (Unauthorized) on invalid payload', (done) => {
+      const invalidPayload = {
+        nickname: 'invalid#nickname',
+        email: 'invalid#email@test.com',
+        password: '12'
+      };
+      request(app)
+        .post('/auth/signup')
+        .send(invalidPayload)
+        .expect(400)
+        .end((err, res) => {
+          expect(res.body.jwtToken).to.not.exist;
+          done();
+        });
+    });
   });
 
   describe('POST /auth/signin', () => {
-    it('can sing in created user', (done) => {
+    it('returns 201 (Created) and jwt token on valid payload', (done) => {
       request(app)
         .post('/auth/signin')
         .send({ email: testUser.email, password: testUser.password })
@@ -41,5 +56,15 @@ describe('/auth routes', function () {
           done();
         });
     });
+    it('returns 400 (Unauthorized) when user does not exist', (done) => {
+      request(app)
+        .post('/auth/signin')
+        .send({ email: 'this.email@does.notexist', password: '1234321' })
+        .expect(400)
+        .end((err, res) => {
+          expect(res.body.jwtToken).to.not.exist;
+          done();
+        });
+    })
   });
 });

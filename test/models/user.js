@@ -107,7 +107,7 @@ describe('User Model', () => {
           AvatarURL: 'http://google.com/url/image.image.jpeg'
         });
         const err = user.validateSync();
-        console.log(err);
+        expect(err).to.be.undefined;
       })
     });
   });
