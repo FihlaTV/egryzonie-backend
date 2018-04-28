@@ -5,51 +5,48 @@ require('../../src/models');
 const { createUsers, createVets } = require('../helpers');
 
 const User = mongoose.model('users');
-const userPayload = {
-  Nickname: 'Valid Nickname',
-  Email: 'valid@email.com',
-  Password: 'Valid#Password'
-};
-
 const Vet = mongoose.model('vets');
-const vetPayload = {
-  GoogleMapsID: 'ChIJ_RRLtDUcBEcREip9_VldDA4',
-  Position: [ 52.706173, 16.380660 ],
-  Name: 'Centrum Zdrowia Małych Zwierząt',
-  Address: 'Poznańska 63A, 64-510 Wronki',
-  Rodents: true,
-  ExoticAnimals: true,
-  WebsiteURL: 'http://www.centrum-wet.pl/',
-  Phone: '510 517 636',
-  Accepted: true,
-  AcceptedDate: new Date('01/01/2016'),
-  SuggestedBy: [],
-  AcceptedBy: null
-};
 
 describe('Vet Model', function () {
-  this.timeout(10000);
+  this.timeout(25000);
 
   let user;
   let vet;
+
+  const vetPayload = {
+    GoogleMapsID: 'ChIJQ8EgpGpDBEcR1d0wYZTGPbI',
+    Position: [ 52.458631, 16.905277 ],
+    Name: 'Centrum Zdrowia Małych Zwierząt',
+    Address: 'Osiedle Władysława Jagiełły 33, 60-694 Poznań',
+    Rodents: true,
+    ExoticAnimals: true,
+    WebsiteURL: 'http://www.klinikawet.pl/',
+    Phone: '61 824 31 77',
+    Accepted: true,
+    AcceptedDate: new Date('01/01/2016'),
+    SuggestedBy: []
+  };
 
   before((done) => {
     mongoose.connect('mongodb://localhost/egryzonie-test');
     mongoose.connection
       .once('open', async () => {
+        await User.remove({});
+        await Vet.remove({});
+
         const exampleUsers = await createUsers(mongoose).catch(err => console.error(err));
         const exampleVets = await createVets(mongoose, exampleUsers).catch(err => console.error(err));
         user = exampleUsers[0];
         vet = exampleVets[0];
+
         done();
       })
       .on('error', (error) => console.error('Connection error: ', error.message));
   });
 
-  after((done) => {
-    mongoose.connection.collections.users.drop(() => {
-      mongoose.connection.collections.vets.drop(() => done());
-    });
+  after(async () => {
+    await User.remove({});
+    await Vet.remove({});
   });
 
   describe('validation of basic fields', () => {
@@ -58,14 +55,14 @@ describe('Vet Model', function () {
       const err = newVet.validateSync();
       expect(err.errors).to.exist;
       expect(err.errors).to.have.property('GoogleMapsID');
-      expect(err.errors.GoogleMapsID.message).to.match(/google maps id is invalid/i);
+      expect(err.errors.GoogleMapsID.message).to.match(/invalid google maps id/i);
     });
     it('rejects invalid position (coordinates)', () => {
-      const newVet = new Vet({ ...vetPayload, Position: [ 99.123123, 192.123123 ] });
+      const newVet = new Vet({ ...vetPayload, Position: [ 99.123123, 192.123123 ]});
       const err = newVet.validateSync();
       expect(err.errors).to.exist;
       expect(err.errors).to.have.property('Position');
-      expect(err.errors.Position.message).to.match(/coordinates are invalid/i);
+      expect(err.errors.Position.message).to.match(/invalid coordinates/i);
     });
     it('rejects invalid website URL', () => {
       const newVet = new Vet({ ...vetPayload, WebsiteURL: 'htts://invalid.address.com/' });
@@ -82,6 +79,7 @@ describe('Vet Model', function () {
       expect(err.errors.Phone.message).to.match(/invalid phone number/i);
     });
   });
+  
   describe('data retrieval', () => {
     it('can find user who suggested vet', async () => {
       const foundVet = await Vet
@@ -92,6 +90,63 @@ describe('Vet Model', function () {
       expect(foundVet).to.have.property('SuggestedBy');
       expect(foundVet).to.have.property('AcceptedBy');
       expect(foundVet.SuggestedBy).to.be.an('array');
+    });
+
+    it('gets no places with too short radius', async () => {
+      const maxDistance = 50;
+      const origin = [ parseFloat((vet.Position[0]+0.001).toFixed(6)), parseFloat((vet.Position[1]+0.001).toFixed(6)) ];
+      const foundVet = await Vet
+        .find({
+          Position: {
+            $near:{
+              $geometry: { type: 'Point', coordinates: origin },
+              $minDistance: 0,
+              $maxDistance: maxDistance
+            }
+          }
+        })
+        .catch(error => console.error(error));
+      expect(foundVet).to.be.an('array');
+      expect(foundVet).to.be.empty;
+    });
+
+    it('gets 1 place in radius od 160 meters using geoNear', async () => {
+      const maxDistance = 160;
+      const origin = [ parseFloat((vet.Position[0]+0.001).toFixed(6)), parseFloat((vet.Position[1]+0.001).toFixed(6)) ];
+      const foundVet = await Vet
+        .find({
+          Position: {
+            $near:{
+              $geometry: { type: 'Point', coordinates: origin },
+              $minDistance: 0,
+              $maxDistance: maxDistance
+            }
+          }
+        })
+        .catch(error => console.error(error));
+      expect(foundVet).to.not.be.empty;
+      expect(foundVet).to.be.an('array');
+      expect(foundVet.length).to.equal(1);
+      expect(foundVet[0]).to.exist;
+      expect(foundVet[0]).to.be.an('object');
+      expect(foundVet[0]).to.have.property('GoogleMapsID');
+      expect(foundVet[0].GoogleMapsID).to.equal(vet.GoogleMapsID);
+    });
+
+    it('can retrieve places by lat/lng with Model static method', async () => {
+      const distance = 160;
+      const origin = [ parseFloat((vet.Position[0]+0.001).toFixed(6)), parseFloat((vet.Position[1]+0.001).toFixed(6)) ];
+      const [lng, lat] = origin;
+      const foundVet = await Vet
+        .findWithinRange(distance, lat, lng)
+        .catch(error => console.error(error));
+      expect(foundVet).to.not.be.empty;
+      expect(foundVet).to.be.an('array');
+      expect(foundVet.length).to.equal(1);
+      expect(foundVet[0]).to.exist;
+      expect(foundVet[0]).to.be.an('object');
+      expect(foundVet[0]).to.have.property('GoogleMapsID');
+      expect(foundVet[0].GoogleMapsID).to.equal(vet.GoogleMapsID);
     });
   });
 

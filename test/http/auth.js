@@ -65,6 +65,6 @@ describe('/auth routes', function () {
           expect(res.body.jwtToken).to.not.exist;
           done();
         });
-    })
+    });
   });
 });

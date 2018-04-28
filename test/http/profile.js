@@ -5,6 +5,7 @@ const faker = require('faker');
 const server = require('../../app');
 const { signUp } = require('../helpers');
 
+
 describe('/profile routes', function() {
   this.timeout(10000);
 
@@ -15,6 +16,11 @@ describe('/profile routes', function() {
 
   before(async () => {
     ({ app, mongoose } = await server.catch(err => console.error(err)));
+    const User = mongoose.model('users');
+    
+    // First clear database from users
+    await User.remove({});
+    
     ({ user, token } = await signUp(app, request).catch(err => console.error(err)));
   });
   

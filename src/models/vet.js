@@ -2,28 +2,27 @@ const mongoose = require('mongoose');
 require('mongoose-double')(mongoose);
 const { Schema } = mongoose;
 
+const GeoSchema = require('./geoschema');
+
 const VetSchema = new Schema({
   GoogleMapsID: {
     type: String,
-    required: [true, 'GoogleMapsID is missing'],
-    unique: [true, 'GooeleMapsID must be unique'],
+    required: [true, 'google maps id is missing'],
+    unique: [true, 'google maps id must be unique'],
     validate: {
       validator: (value) => /^[A-Za-z0-9_]{27,30}$/g.test(value),
-      message: 'google maps id is invalid'
+      message: 'invalid google maps id'
     }
   },
   Position: {
-    type: [Schema.Types.Double],
-    coordinates: [Schema.Types.Double],
-    required: [true, 'coordinates are missing'],
+    type: GeoSchema,
     validate: {
       validator: (value) => {
-        if (Array.isArray(value) && value.length === 1 && typeof value[0] === 'string') {
-          value = parseFloat(value[0].split(','));
-        }
-        return value[0] <= 90 && value[0] >= -90 && value[1] <= 180 && value[1] >= -180;
+        if (!Array.isArray(value)) return false;
+        const [lng, lat] = value;
+        return (lng >= -180 && lng <= 180 && lat >= -90 && lat <= 90);
       },
-      message: 'coordinates are invalid'
+      message: 'invalid coordinates'
     }
   },
   Name: {
@@ -74,13 +73,34 @@ const VetSchema = new Schema({
   }
 });
 
+// Indexes
+VetSchema.index({ Position: '2dsphere' });
+
+/**
+ * Used to find vet places within specified range
+ * @param {Number} range Range to search within in meters
+ * @param {Number} lat Lattitude of the origin point
+ * @param {Number} lng Longitude of the origin point
+ */
 VetSchema.statics.findWithinRange = function(range, lat, lng) {
+  lat = parseFloat(lat);
+  lng = parseFloat(lng);
+
   return this.find({
-    $near: [lat, lng],
+    Position: {
+      $near:{
+        $geometry: { type: 'Point', coordinates: [lng, lat] },
+        $maxDistance: range
+      }
+    },
     Accepted: true
   });
 };
 
+/**
+ * Used when user wants to recommend a vet place to become officially recommended.
+ * @param {ObjectID} user User that we want to toggle the recommendation for.
+ */
 VetSchema.methods.toggleUserRecommendation = function(user) {
   const index = this.SuggestedBy.indexOf(user._id);
   if (index > -1) {
@@ -91,5 +111,5 @@ VetSchema.methods.toggleUserRecommendation = function(user) {
   return this.save();
 };
 
-
+// Export
 mongoose.model('vets', VetSchema);
