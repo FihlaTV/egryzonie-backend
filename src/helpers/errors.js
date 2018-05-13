@@ -12,5 +12,13 @@ class NotFoundError extends Error {
   }
 }
 
+class BadRequestError extends Error {
+  constructor(...args) {
+    super(...args);
+    this.name = 'BadRequest Error';
+  }
+}
+
 exports.ValidationError = ValidationError;
 exports.NotFoundError = NotFoundError;
+exports.BadRequestError = BadRequestError;

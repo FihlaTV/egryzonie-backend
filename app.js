@@ -1,4 +1,5 @@
 const path = require('path');
+const fs = require('fs');
 const express = require('express');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
@@ -6,6 +7,7 @@ const bodyParser = require('body-parser');
 const passport = require('passport');
 const cors = require('cors');
 const morgan = require('morgan');
+const endpoints = require('express-list-endpoints');
 
 console.log('Current environment: ', process.env.NODE_ENV);
 
@@ -33,6 +35,12 @@ if (process.env.NODE_ENV === 'development') {
   }));
 }
 
+if (process.env.NODE_ENV === 'test') {
+  app.use(morgan('common', {
+    stream: fs.createWriteStream('./test/tests.log', { flags: 'a' })
+  }));
+}
+
 // Mongoose models
 require('./src/models');
 
@@ -51,6 +59,8 @@ require('./src/middlewares/error-handling')(app);
 const host = process.env.HOST;
 const port = process.env.PORT || process.env.FALLBACK_PORT;
 const protocol = process.env.USE_SSL === true ? 'https' : 'http';
+
+console.log(endpoints(app));
 
 module.exports = new Promise(async (resolve, reject) => {
   try {

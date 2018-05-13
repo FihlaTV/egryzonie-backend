@@ -39,48 +39,48 @@ describe('/vets routes', function() {
   });
 
   console.warn('\n\n!! NONE OF THIS TESTS WORKS, PLEASE UNCOMMENT BEFORE WORKING ON /vets ROUTES\n\n');
+  
+  // GETs
   describe('GET /vets', () => {
-    it('returns 400 (Bad Request) without coordinates present', (done) => {
-      // request(app)
-      //   .get('/vets')
-      //   .expect(400)
-      //   .end((err, res) => {
-      //     if (err) throw err;
-      //     expect(res.body).to.have.property('message');
-      //     expect(res.body.message).to.match(/Coordinates are missing/i);
-      //     done();
-      //   });
-      done();
-    });
-    it('returns 400 (Bad Request) when coordinates are invalid', (done) => {
-      // request(app)
-      //   .get('/vets')
-      //   .query({ lat: -240.000000, lng: 666.000000, range: 200 })
-      //   .expect(400)
-      //   .end((err, res) => {
-      //     if (err) throw err;
-      //     expect(res.body).to.have.property('message');
-      //     expect(res.body.message).to.match(/Coordinates are invalid/i);
-      //     done();
-      //   });
-      done();
-    });
+    // it('returns 400 (Bad Request) without coordinates present', (done) => {
+    //   request(app)
+    //     .get('/vets/find')
+    //     .expect(400)
+    //     .end((err, res) => {
+    //       if (err) throw err;
+    //       expect(res.body).to.have.property('message');
+    //       expect(res.body.message).to.match(/Coordinates are missing/i);
+    //       done();
+    //     });
+    // });
+
+    // it('returns 400 (Bad Request) when coordinates are invalid', (done) => {
+    //   request(app)
+    //     .get('/vets/find/200/-240.000000/666.000000')
+    //     .expect(400)
+    //     .end((err, res) => {
+    //       if (err) throw err;
+    //       expect(res.body).to.have.property('message');
+    //       expect(res.body.message).to.match(/Coordinates are invalid/i);
+    //       done();
+    //     });
+    // });
+
     it('returns an array when valid coordinates are present', (done) => {
-      // request(app)
-      //   .get('/vets')
-      //   .query({ lat: -90.000000, lng: 180.000000, range: 200 })
-      //   .expect(200)
-      //   .end((err, res) => {
-      //     if (err) throw err;
-      //     expect(res.body).to.exist;
-      //     expect(res.body).to.have.property('vets');
-      //     expect(res.body.places).to.be.an('array');
-      //     done();
-      //   });
-      done();
+      request(app)
+        .get(`/vets/find/200/${vets[0].Position[0]}/${vets[0].Position[1]}`)
+        .expect(200)
+        .end((err, res) => {
+          if (err) throw err;
+          expect(res.body).to.exist;
+          expect(res.body).to.have.property('vets');
+          expect(res.body.places).to.be.an('array');
+          done();
+        });
     });
   });
 
+  // POSTs
   describe('POST /vets/suggestions', () => {
     const validPayload = {
       GoogleMapsID: 'ChIJ_RRLtDUcBEcREip9_VldDA4',

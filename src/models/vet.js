@@ -85,7 +85,7 @@ VetSchema.index({ Position: '2dsphere' });
 VetSchema.statics.findWithinRange = function(range, lat, lng) {
   lat = parseFloat(lat);
   lng = parseFloat(lng);
-
+  range = parseInt(range);
   return this.find({
     Position: {
       $near:{

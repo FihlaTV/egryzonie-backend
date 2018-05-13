@@ -20,6 +20,7 @@
     "cross-env": "^5.1.4",
     "dotenv": "^5.0.1",
     "express": "^4.16.3",
+    "express-list-endpoints": "^3.0.1",
     "jsonwebtoken": "^8.2.0",
     "jwt-simple": "^0.5.1",
     "mocha-mongoose": "^1.2.0",
