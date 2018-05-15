@@ -9,7 +9,6 @@ router.get('/find/:range?/:lat?/:lng?', policy.findInRange, controller.findInRan
 router.get('/test', (req, res, next) => res.json({ message: 'works!' }));
 
 router.get('/test/:index', (req, res, next) => {
-  console.log(req.params);
   res.json({ message: 'ok' });
 });
 

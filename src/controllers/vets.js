@@ -15,6 +15,6 @@ exports.findInRange = async (req, res, next) => {
     });
 
   if (!vets) return res.sendStatus(404);
-  
+
   return res.status(200).json(vets);
 };

@@ -33,13 +33,13 @@ describe('/vets routes', function() {
     // Create example vets & users
     const exampleUsers = await createUsers(mongoose);
     const exampleVets = await createVets(mongoose, exampleUsers);
-    
+
     user = exampleUsers[0];
     vets = exampleVets;
   });
 
   console.warn('\n\n!! NONE OF THIS TESTS WORKS, PLEASE UNCOMMENT BEFORE WORKING ON /vets ROUTES\n\n');
-  
+
   // GETs
   describe('GET /vets', () => {
     // it('returns 400 (Bad Request) without coordinates present', (done) => {
@@ -73,8 +73,7 @@ describe('/vets routes', function() {
         .end((err, res) => {
           if (err) throw err;
           expect(res.body).to.exist;
-          expect(res.body).to.have.property('vets');
-          expect(res.body.places).to.be.an('array');
+          expect(res.body).to.be.an('array');
           done();
         });
     });
@@ -139,5 +138,5 @@ describe('/vets routes', function() {
       done();
     });
   });
-  
+
 });

@@ -60,8 +60,6 @@ const host = process.env.HOST;
 const port = process.env.PORT || process.env.FALLBACK_PORT;
 const protocol = process.env.USE_SSL === true ? 'https' : 'http';
 
-console.log(endpoints(app));
-
 module.exports = new Promise(async (resolve, reject) => {
   try {
     await mongoose.connect(`mongodb://${process.env.MONGO_HOST}/${process.env.MONGO_DB}`);

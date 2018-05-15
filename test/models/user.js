@@ -121,7 +121,7 @@ describe('User Model', () => {
       });
       user.save((err) => {
         expect(err).to.be.null;
-        expect(user.Password).to.match(/^\$2a\$/);
+        expect(user.Password).to.match(/^\$2[a-d]\$/);
         done();
       });
     });

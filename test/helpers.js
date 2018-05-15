@@ -36,7 +36,7 @@ exports.signUp = function(app, request) {
 
 /**
  * Create a collection of example users, ensureing at least one of them is an admin.
- * @param {object} mongoose A mongoose object 
+ * @param {object} mongoose A mongoose object
  */
 exports.createUsers = async function(mongoose) {
   const User = mongoose.model('users');
@@ -60,12 +60,12 @@ exports.createUsers = async function(mongoose) {
 
 /**
  * Create a collection of veterinary care places
- * @param {object} mongoose 
- * @param {object} users 
+ * @param {object} mongoose
+ * @param {object} users
  */
 exports.createVets = function(mongoose, users) {
   const Vet = mongoose.model('vets');
-  
+
   const exampleVets = [
     new Vet({
       GoogleMapsID: 'ChIJQ8EgpGpDBEcR1d0wYZTGPbI',

@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "assert": "^1.4.1",
-    "bcrypt-as-promised": "^1.1.0",
+    "bcrypt": "^2.0.1",
     "body-parser": "^1.18.2",
     "cors": "^2.8.4",
     "cross-env": "^5.1.4",
