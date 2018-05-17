@@ -25,6 +25,6 @@ exports.VerifyToken = (req, res, next) => {
     .then(user => {
       if (!user) return Promise.reject(new NotFoundError('User not found.'));
       return res.json(user);
-    }) 
+    })
     .catch(err => next(err));
 };

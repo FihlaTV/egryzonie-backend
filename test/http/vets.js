@@ -67,13 +67,34 @@ describe('/vets routes', function() {
     // });
 
     it('returns an array when valid coordinates are present', (done) => {
+      // Why 1 ant then 0? MongoDB geospatial queries require
+      // the use of reversed order - first longitude, then lattitude
+      const lat = (parseFloat(vets[0].Position[1]) + 0.001).toFixed(6);
+      const lng = (parseFloat(vets[0].Position[0]) + 0.001).toFixed(6);
+
       request(app)
-        .get(`/vets/find/200/${vets[0].Position[0]}/${vets[0].Position[1]}`)
+        .get(`/vets/find_nearby/160/${lat}/${lng}`)
         .expect(200)
         .end((err, res) => {
           if (err) throw err;
           expect(res.body).to.exist;
           expect(res.body).to.be.an('array');
+          done();
+        });
+    });
+
+    it('returns an array when valid name or address is present', (done) => {
+      const address = vets[0].Address.substring(0, vets[0].Address.indexOf(' ', 9));
+      // expect(address).to.equal('Osiedle Władysława');
+      request(app)
+        .get(`/vets/find/${address}`)
+        .expect(200)
+        .end((err, res) => {
+          if (err) throw err;
+          expect(res.body).to.be.an('array');
+          expect(res.body.length).to.equal(1);
+          expect(res.body[0]).to.have.property('Name');
+          expect(res.body[0].Name).to.match(new RegExp(`${address}`, 'i'));
           done();
         });
     });

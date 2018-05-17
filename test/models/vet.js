@@ -79,7 +79,7 @@ describe('Vet Model', function () {
       expect(err.errors.Phone.message).to.match(/invalid phone number/i);
     });
   });
-  
+
   describe('data retrieval', () => {
     it('can find user who suggested vet', async () => {
       const foundVet = await Vet
@@ -133,10 +133,14 @@ describe('Vet Model', function () {
       expect(foundVet[0].GoogleMapsID).to.equal(vet.GoogleMapsID);
     });
 
-    it('can retrieve places by lat/lng with Model static method', async () => {
+    it('retrieves example places by lat/lng with Model static method', async () => {
       const distance = 160;
-      const origin = [ parseFloat((vet.Position[0]+0.001).toFixed(6)), parseFloat((vet.Position[1]+0.001).toFixed(6)) ];
-      const [lng, lat] = origin;
+
+      // Why 1 ant then 0? MongoDB geospatial queries require
+      // the use of reversed order - first longitude, then lattitude
+      const lat = parseFloat((vet.Position[1]+0.001).toFixed(6));
+      const lng = parseFloat((vet.Position[0]+0.001).toFixed(6));
+
       const foundVet = await Vet
         .findWithinRange(distance, lat, lng)
         .catch(error => console.error(error));
@@ -148,6 +152,50 @@ describe('Vet Model', function () {
       expect(foundVet[0]).to.have.property('GoogleMapsID');
       expect(foundVet[0].GoogleMapsID).to.equal(vet.GoogleMapsID);
     });
+
+    it('retrieves example places by address', async () => {
+      const searchText = 'Osiedle Władysława';
+
+      const foundVet = await Vet
+        .findByNameOrAddress(searchText)
+        .catch(error => console.error(error));
+
+      expect(foundVet).to.not.be.empty;
+      expect(foundVet).to.be.an('array');
+      expect(foundVet.length).to.equal(1);
+      expect(foundVet[0]).to.exist;
+      expect(foundVet[0]).to.be.an('object');
+      expect(foundVet[0]).to.have.property('Address');
+      expect(foundVet[0].Address).to.match(new RegExp(searchText, 'i'));
+    });
+
+    it('can retrieve places by name', async () => {
+      const searchText = 'zwierząt';
+
+      const foundVets = await Vet
+        .findByNameOrAddress(searchText)
+        .catch(error => console.error(error));
+
+      expect(foundVets).to.not.be.empty;
+      expect(foundVets).to.be.an('array');
+      expect(foundVets.length).to.equal(3);
+      for (let i = 0; i < foundVets.length; i++) {
+        expect(foundVets[i]).to.exist;
+        expect(foundVets[i]).to.be.an('object');
+        expect(foundVets[i]).to.have.property('Name');
+        expect(foundVets[i].Name).to.match(new RegExp(searchText, 'i'));
+      }
+    });
+
+    it('does not retrieve any places that do not match', async () => {
+      const searchText = 'some random text';
+
+      const foundVets = await Vet
+        .findByNameOrAddress(searchText)
+        .catch(error => console.error(error));
+
+      expect(foundVets).to.be.empty;
+    });
   });
 
   describe('applying suggestions from user to vet', () => {
@@ -155,6 +203,7 @@ describe('Vet Model', function () {
       const vet = await Vet
         .findOne({})
         .catch(error => console.log(error));
+
       const exists = vet.SuggestedBy.indexOf(user._id) > -1;
       const newVet = await vet.toggleUserRecommendation(user);
       if (exists) {

@@ -97,6 +97,15 @@ VetSchema.statics.findWithinRange = function(range, lat, lng) {
   });
 };
 
+VetSchema.statics.findByNameOrAddress = function(search, radius) {
+  return this.find({
+    $or: [
+      { Address: new RegExp(`${search}`, 'i') },
+      { Name: new RegExp(`${search}`, 'i') }
+    ]
+  });
+};
+
 /**
  * Used when user wants to recommend a vet place to become officially recommended.
  * @param {ObjectID} user User that we want to toggle the recommendation for.

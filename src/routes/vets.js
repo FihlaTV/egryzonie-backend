@@ -4,7 +4,9 @@ const policy = require('../policies/vets');
 const controller = require('../controllers/vets');
 const { jwtSession } = require('../../config/secrets');
 
-router.get('/find/:range?/:lat?/:lng?', policy.findInRange, controller.findInRange);
+router.get('/find_nearby/:range?/:lat?/:lng?', policy.findInRange, controller.findInRange);
+
+router.post('/find/:search', policy.findByNameOrAddress, controller.findByNameOrAddress);
 
 router.get('/test', (req, res, next) => res.json({ message: 'works!' }));
 
