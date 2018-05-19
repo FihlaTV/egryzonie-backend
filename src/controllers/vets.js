@@ -18,15 +18,13 @@ exports.findInRange = async (req, res, next) => {
       next(new MongoError(err));
     });
 
-  if (!vets.length) return res.sendStatus(204);
-
   return res.status(200).json(vets);
 };
 
 /**
  * Find name or address
  */
-exports.createSearch = async (req, res, next) => {
+exports.findByNameOrAddress = async (req, res, next) => {
   const { search } = req.body;
 
   const vets = await Vet
@@ -35,8 +33,6 @@ exports.createSearch = async (req, res, next) => {
       logger.error(err);
       next(new MongoError(err));
     });
-
-  if (!vets) return res.sendStatus(404);
 
   return res.status(200).json(vets);
 };

@@ -38,65 +38,65 @@ describe('/vets routes', function() {
     vets = exampleVets;
   });
 
-  console.warn('\n\n!! NONE OF THIS TESTS WORKS, PLEASE UNCOMMENT BEFORE WORKING ON /vets ROUTES\n\n');
-
   // GETs
   describe('GET /vets', () => {
-    // it('returns 400 (Bad Request) without coordinates present', (done) => {
-    //   request(app)
-    //     .get('/vets/find')
-    //     .expect(400)
-    //     .end((err, res) => {
-    //       if (err) throw err;
-    //       expect(res.body).to.have.property('message');
-    //       expect(res.body.message).to.match(/Coordinates are missing/i);
-    //       done();
-    //     });
-    // });
+    describe('/find', () => {
+      it('returns 400 (Bad Request) without coordinates present', (done) => {
+        request(app)
+          .get('/vets/find_nearby')
+          .expect(400)
+          .end((err, res) => {
+            if (err) throw err;
+            expect(res.body).to.have.property('message');
+            expect(res.body.message).to.match(/Coordinates are missing/i);
+            done();
+          });
+      });
 
-    // it('returns 400 (Bad Request) when coordinates are invalid', (done) => {
-    //   request(app)
-    //     .get('/vets/find/200/-240.000000/666.000000')
-    //     .expect(400)
-    //     .end((err, res) => {
-    //       if (err) throw err;
-    //       expect(res.body).to.have.property('message');
-    //       expect(res.body.message).to.match(/Coordinates are invalid/i);
-    //       done();
-    //     });
-    // });
+      it('returns 400 (Bad Request) when coordinates are invalid', (done) => {
+        request(app)
+          .get('/vets/find_nearby/200/-240.000000/666.000000')
+          .expect(400)
+          .end((err, res) => {
+            if (err) throw err;
+            expect(res.body).to.have.property('message');
+            expect(res.body.message).to.match(/Coordinates are invalid/i);
+            done();
+          });
+      });
 
-    it('returns an array when valid coordinates are present', (done) => {
-      // Why 1 ant then 0? MongoDB geospatial queries require
-      // the use of reversed order - first longitude, then lattitude
-      const lat = (parseFloat(vets[0].Position[1]) + 0.001).toFixed(6);
-      const lng = (parseFloat(vets[0].Position[0]) + 0.001).toFixed(6);
+      it('returns an array when valid coordinates are present', (done) => {
+        // Why 1 ant then 0? MongoDB geospatial queries require
+        // the use of reversed order - first longitude, then lattitude
+        const lat = (parseFloat(vets[0].Position[1]) + 0.001).toFixed(6);
+        const lng = (parseFloat(vets[0].Position[0]) + 0.001).toFixed(6);
 
-      request(app)
-        .get(`/vets/find_nearby/160/${lat}/${lng}`)
-        .expect(200)
-        .end((err, res) => {
-          if (err) throw err;
-          expect(res.body).to.exist;
-          expect(res.body).to.be.an('array');
-          done();
-        });
-    });
+        request(app)
+          .get(`/vets/find_nearby/160/${lat}/${lng}`)
+          .expect(200)
+          .end((err, res) => {
+            if (err) throw err;
+            expect(res.body).to.exist;
+            expect(res.body).to.be.an('array');
+            done();
+          });
+      });
 
-    it('returns an array when valid name or address is present', (done) => {
-      const address = vets[0].Address.substring(0, vets[0].Address.indexOf(' ', 9));
-      // expect(address).to.equal('Osiedle Władysława');
-      request(app)
-        .get(`/vets/find/${address}`)
-        .expect(200)
-        .end((err, res) => {
-          if (err) throw err;
-          expect(res.body).to.be.an('array');
-          expect(res.body.length).to.equal(1);
-          expect(res.body[0]).to.have.property('Name');
-          expect(res.body[0].Name).to.match(new RegExp(`${address}`, 'i'));
-          done();
-        });
+      it('returns an array when valid name or address is present', (done) => {
+        const search = vets[0].Address.substring(0, vets[0].Address.indexOf(' ', 9));
+        request(app)
+          .post('/vets/search')
+          .send({ search })
+          .expect(200)
+          .end((err, res) => {
+            if (err) throw err;
+            expect(res.body).to.be.an('array');
+            expect(res.body.length).to.equal(1);
+            expect(res.body[0]).to.have.property('Name');
+            expect(res.body[0].Address).to.match(new RegExp(`${search}`, 'i'));
+            done();
+          });
+      });
     });
   });
 

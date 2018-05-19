@@ -21,7 +21,7 @@ exports.findInRange = (req, res, next) => {
 /**
  * Search name or address
  */
-exports.search = (req, res, next) => {
+exports.findByNameOrAddress = (req, res, next) => {
   const { search } = req.body;
 
   if (!search) {

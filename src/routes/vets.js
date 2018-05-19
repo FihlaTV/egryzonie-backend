@@ -6,12 +6,6 @@ const { jwtSession } = require('../../config/secrets');
 
 router.get('/find_nearby/:range?/:lat?/:lng?', policy.findInRange, controller.findInRange);
 
-router.post('/find/:search', policy.findByNameOrAddress, controller.findByNameOrAddress);
-
-router.get('/test', (req, res, next) => res.json({ message: 'works!' }));
-
-router.get('/test/:index', (req, res, next) => {
-  res.json({ message: 'ok' });
-});
+router.post('/search', policy.findByNameOrAddress, controller.findByNameOrAddress);
 
 module.exports = router;
