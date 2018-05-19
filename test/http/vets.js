@@ -81,26 +81,28 @@ describe('/vets routes', function() {
             done();
           });
       });
-
-      it('returns an array when valid name or address is present', (done) => {
-        const search = vets[0].Address.substring(0, vets[0].Address.indexOf(' ', 9));
-        request(app)
-          .post('/vets/search')
-          .send({ search })
-          .expect(200)
-          .end((err, res) => {
-            if (err) throw err;
-            expect(res.body).to.be.an('array');
-            expect(res.body.length).to.equal(1);
-            expect(res.body[0]).to.have.property('Name');
-            expect(res.body[0].Address).to.match(new RegExp(`${search}`, 'i'));
-            done();
-          });
-      });
     });
   });
 
   // POSTs
+  describe('POST /vets/search', () => {
+    it('returns an array when valid name or address is present', (done) => {
+      const search = vets[0].Address.substring(0, vets[0].Address.indexOf(' ', 9));
+      request(app)
+        .post('/vets/search')
+        .send({ search })
+        .expect(200)
+        .end((err, res) => {
+          if (err) throw err;
+          expect(res.body).to.be.an('array');
+          expect(res.body.length).to.equal(1);
+          expect(res.body[0]).to.have.property('Name');
+          expect(res.body[0].Address).to.match(new RegExp(`${search}`, 'i'));
+          done();
+        });
+    });
+  });
+
   describe('POST /vets/suggestions', () => {
     const validPayload = {
       GoogleMapsID: 'ChIJ_RRLtDUcBEcREip9_VldDA4',
