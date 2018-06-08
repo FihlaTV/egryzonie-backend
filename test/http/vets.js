@@ -38,10 +38,14 @@ describe('/vets routes', function() {
     vets = exampleVets;
   });
 
-  // GETs
-  describe('GET /vets', () => {
-    describe('/find', () => {
-      it('returns 400 (Bad Request) without coordinates present', (done) => {
+  /**
+   * GET routes
+   */
+  describe('## GET /vets', () => {
+
+    // Find by address or name
+    describe('# GET /vets/find', () => {
+      it('Returns 400 (Bad Request) without coordinates present', (done) => {
         request(app)
           .get('/vets/find_nearby')
           .expect(400)
@@ -52,8 +56,11 @@ describe('/vets routes', function() {
             done();
           });
       });
+    });
 
-      it('returns 400 (Bad Request) when coordinates are invalid', (done) => {
+    // Find by coordinates
+    describe('# GET /vets/find_nearby', () => {
+      it('Returns 400 (Bad Request) when coordinates are invalid', (done) => {
         request(app)
           .get('/vets/find_nearby/200/-240.000000/666.000000')
           .expect(400)
@@ -65,7 +72,7 @@ describe('/vets routes', function() {
           });
       });
 
-      it('returns an array when valid coordinates are present', (done) => {
+      it('Returns an array when valid coordinates are present', (done) => {
         // Why 1 ant then 0? MongoDB geospatial queries require
         // the use of reversed order - first longitude, then lattitude
         const lat = (parseFloat(vets[0].Position[1]) + 0.001).toFixed(6);
@@ -82,83 +89,53 @@ describe('/vets routes', function() {
           });
       });
     });
+
+    // Find one by ID
+    describe('# GET /vets/show/:id', () => {
+      it('Returns 404 (Not Found) when invalid ID is provided', (done) => {
+        request(app)
+          .get('/vets/show/45bz80acb2353e03567824db')
+          .expect(404)
+          .end((err, res) => {
+            if (err) throw err;
+            expect(res.body).to.be.empty;
+          });
+      });
+      it('Returns 200 (OK) when valid ID is provided', (done) => {
+        request(app)
+          .get(`/vets/show/${vets[0]._id}`)
+          .expect(200)
+          .end((err, res) => {
+            if (err) throw err;
+            expect(res.body).to.not.be.empty;
+            expect(res.body).to.be.an('object');
+            expect(res.body).to.have.property('Name');
+          });
+      });
+    });
   });
 
-  // POSTs
-  describe('POST /vets/search', () => {
-    it('returns an array when valid name or address is present', (done) => {
-      const search = vets[0].Address.substring(0, vets[0].Address.indexOf(' ', 9));
-      request(app)
-        .post('/vets/search')
-        .send({ search })
-        .expect(200)
-        .end((err, res) => {
-          if (err) throw err;
-          expect(res.body).to.be.an('array');
-          expect(res.body.length).to.equal(1);
-          expect(res.body[0]).to.have.property('Name');
-          expect(res.body[0].Address).to.match(new RegExp(`${search}`, 'i'));
-          done();
-        });
-    });
-  });
 
-  describe('POST /vets/suggestions', () => {
-    const validPayload = {
-      GoogleMapsID: 'ChIJ_RRLtDUcBEcREip9_VldDA4',
-      Position: [ 52.706173, 16.380660 ],
-      Name: 'Centrum Zdrowia Małych Zwierząt',
-      Address: 'Poznańska 63A, 64-510 Wronki',
-      Rodents: true,
-      ExoticAnimals: true,
-      WebsiteURL: 'http://www.centrum-wet.pl/',
-      Phone: '510 517 636',
-      Accepted: true,
-      AcceptedDate: new Date('01/01/2016'),
-      SuggestedBy: [1],
-      AcceptedBy: 1
-    };
-    it('returns 400 (Bad Request) when GoogleMapsID is missing', (done) => {
-      const invalidPayload = { ...validPayload, GoogleMapsID: null };
-      // request(app)
-      //   .post('/vets/suggestions')
-      //   .send(payload)
-      //   .expect(400)
-      //   .end((err, res) => {
-      //     if (err) throw err;
-      //     expect(res.body).to.have.property('message');
-      //     expect(res.body.message).to.match(/GoogleMapsID is missing/i);
-      //     done();
-      //   });
-      done();
-    });
-    it('returns 400 (Bad Request) when GoogleMapsID already exist', (done) => {
-      const payload = vets[0];
-      // request(app)
-      //   .post('/vets/suggestions')
-      //   .send(payload)
-      //   .expect(400)
-      //   .end((err, res) => {
-      //     if (err) throw err;
-      //     expect(res.body).to.have.property('message');
-      //     expect(res.body.message).to.match(/GoogleMapsID must be unique/i);
-      //     done();
-      //   });
-      done();
-    });
-    it('returns 200 (OK) or 201 (Created) when payload is valid', (done) => {
-      // request(app)
-      //   .post('/vets/suggestions')
-      //   .send(validPayload)
-      //   .end((err, res) => {
-      //     if (err) throw err;
-      //     expect(res.status).to.be.within(200, 201);
-      //     expect(res.body).to.have.property('GoogleMapsID');
-      //     expect(res.headers).to.have.key('Location');
-      //     expect(res.headers.Location).to.be.a('string');
-      //     done();
-      //   });
-      done();
+  /**
+   * POST routes
+   */
+  describe('### POST /vets', () => {
+    describe('## POST /search', () => {
+      it('# Returns an array when valid name or address is present', (done) => {
+        const search = vets[0].Address.substring(0, vets[0].Address.indexOf(' ', 9));
+        request(app)
+          .post('/vets/search')
+          .send({ search })
+          .expect(200)
+          .end((err, res) => {
+            if (err) throw err;
+            expect(res.body).to.be.an('array');
+            expect(res.body.length).to.equal(1);
+            expect(res.body[0]).to.have.property('Name');
+            expect(res.body[0].Address).to.match(new RegExp(`${search}`, 'i'));
+            done();
+          });
+      });
     });
   });
 

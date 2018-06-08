@@ -1,8 +1,14 @@
+const logger = require('../logger');
 const mongoose = require('mongoose');
 require('mongoose-double')(mongoose);
 const { Schema } = mongoose;
 
 const GeoSchema = require('./geoschema');
+const User = require('./user');
+
+
+
+/***** SCHEMA DEFINITION ******/
 
 const VetSchema = new Schema({
   GoogleMapsID: {
@@ -76,11 +82,16 @@ const VetSchema = new Schema({
 // Indexes
 VetSchema.index({ Position: '2dsphere' });
 
+
+
+/***** STATIC METHODS ******/
+
 /**
  * Used to find vet places within specified range
  * @param {Number} range Range to search within in meters
  * @param {Number} lat Lattitude of the origin point
  * @param {Number} lng Longitude of the origin point
+ * @returns {Array} A collection of retrieved vets
  */
 VetSchema.statics.findWithinRange = function(range, lat, lng) {
   lat = parseFloat(lat);
@@ -97,7 +108,12 @@ VetSchema.statics.findWithinRange = function(range, lat, lng) {
   });
 };
 
-VetSchema.statics.findByNameOrAddress = function(search, radius) {
+/**
+ * Used to retrieve all vets with name or address matching provided string.
+ * @param {string} search Name or address to perform the search with.
+ * @returns {Promise} Query results
+ */
+VetSchema.statics.findByNameOrAddress = function(search) {
   return this.find({
     $or: [
       { Address: new RegExp(`${search}`, 'i') },
@@ -107,8 +123,35 @@ VetSchema.statics.findByNameOrAddress = function(search, radius) {
 };
 
 /**
+ * Used to retrieve all users who suggested selected Vet.
+ * @param {String} vetId ID string for selected Vet
+ * @returns {Array} An array of user references
+ */
+VetSchema.statics.getUserSuggestions = function(vetId) {
+  return new Promise(async (resolve, reject) => {
+    const vet = await this.findById(vetId)
+      .populate({
+        path: 'SuggestedBy',
+        model: 'users',
+        select: '_id Nickname AvatarURL Role'
+      })
+      .catch((err) => {
+        logger.error('Error retrieving user suggestions', err);
+        throw err;
+      });
+    if (!vet) return reject();
+    return resolve(vet.SuggestedBy);
+  });
+};
+
+
+
+/***** INSTANCE METHODS ******/
+
+/**
  * Used when user wants to recommend a vet place to become officially recommended.
  * @param {ObjectID} user User that we want to toggle the recommendation for.
+ * @returns {Promise} result of performed query
  */
 VetSchema.methods.toggleUserRecommendation = function(user) {
   const index = this.SuggestedBy.indexOf(user._id);
@@ -120,5 +163,10 @@ VetSchema.methods.toggleUserRecommendation = function(user) {
   return this.save();
 };
 
-// Export
-mongoose.model('vets', VetSchema);
+
+
+/***** EXPORT ******/
+
+const VetsModel = mongoose.model('vets', VetSchema);
+
+module.exports = VetsModel;

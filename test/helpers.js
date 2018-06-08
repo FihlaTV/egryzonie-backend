@@ -78,7 +78,7 @@ exports.createVets = function(mongoose, users) {
       Phone: '61 824 31 77',
       Accepted: true,
       AcceptedDate: new Date('01/01/2016'),
-      SuggestedBy: randomizr(users),
+      SuggestedBy: [users[0], users[1]],
       AcceptedBy: users.find(u => u.Role === 'admin')
     }),
     new Vet({
