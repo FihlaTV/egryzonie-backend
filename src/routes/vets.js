@@ -29,6 +29,17 @@ router.get(
 
 
 /**
+ * POST /find_nearby
+ * @memberOf
+ */
+router.post(
+  '/find_nearby',
+  policy.findInRangePost,
+  controller.findInRangePost
+);
+
+
+/**
  * POST /search
  * @param search String Text to search with.
  */

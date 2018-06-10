@@ -46,6 +46,24 @@ exports.findInRange = async (req, res, next) => {
 
 
 /**
+ * Creates a search and finds Vets by range and coordinates
+ * POST /find_nearby
+ */
+exports.findInRangePost = async (req, res, next) => {
+  const { range, lat, lng } = req.body;
+
+  const vets = await Vet
+    .findWithinRange(range, lat, lng)
+    .catch(err => {
+      logger.error(err);
+      next(new MongoError(err));
+    });
+
+  return res.status(201).json(vets);
+};
+
+
+/**
  * Find name or address
  */
 exports.findByNameOrAddress = async (req, res, next) => {
@@ -58,5 +76,5 @@ exports.findByNameOrAddress = async (req, res, next) => {
       next(new MongoError(err));
     });
 
-  return res.status(200).json(vets);
+  return res.status(201).json(vets);
 };

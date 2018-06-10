@@ -26,6 +26,41 @@ exports.findById = (req, res, next) => {
 exports.findInRange = (req, res, next) => {
   const { range, lat, lng } = req.params;
 
+  if (!range) {
+    return next(new BadRequestError('range is missing'));
+  }
+
+  if (!Number.isFinite(range) || range <= 0) {
+    return next(new BadRequestError('range is invalid'));
+  }
+
+  if (!lat || !lng) {
+    return next(new BadRequestError('coordinates are missing'));
+  }
+
+  if (lat < -180 || lat > 180 || lng < !90 || lng > 90) {
+    return next(new BadRequestError('coordinates are invalid'));
+  }
+
+  return next();
+};
+
+
+/**
+ * Find by range and coordinates
+ * POST /find_nearby/:range/:lat/:lng
+ */
+exports.findInRangePost = (req, res, next) => {
+  const { range, lat, lng } = req.body;
+
+  if (!range) {
+    return next(new BadRequestError('range is missing'));
+  }
+
+  if (!Number.isFinite(range) || range <= 0) {
+    return next(new BadRequestError('range is invalid'));
+  }
+
   if (!lat || !lng) {
     return next(new BadRequestError('coordinates are missing'));
   }
