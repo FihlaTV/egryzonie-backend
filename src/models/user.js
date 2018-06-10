@@ -1,4 +1,4 @@
-const bcrypt = require('bcrypt-as-promised');
+const bcrypt = require('bcrypt');
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
@@ -15,7 +15,7 @@ const UserSchema = new Schema({
     type: String,
     required: true,
     validate: {
-      validator: (value) => /^([\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEFA-Za-z0-9._-]{5,55})$/g.test(value),
+      validator: (value) => /^([\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEFA-Za-z0-9._\- ]{5,55})$/g.test(value),
       message: 'invalid nickname'
     }
   },
@@ -49,15 +49,15 @@ const UserSchema = new Schema({
   }
 });
 
-UserSchema.pre('save', function() {
-  return bcrypt.genSalt()
-    .then((salt) => {
-      return bcrypt.hash(this.Password, salt);
-    })
-    .then((hash) => this.Password = hash)
-    .catch((error) => {
-      console.error('Error hashing password: ', error.message);
+UserSchema.pre('save', function (next) {
+  bcrypt.genSalt(8, (err, salt) => {
+    if (err) throw err;
+    bcrypt.hash(this.Password, salt, (err, hash) => {
+      if (err) throw err;
+      this.Password = hash;
+      next();
     });
+  });
 });
 
 UserSchema.methods.validatePassword = function validatePassword(password) {

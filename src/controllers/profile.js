@@ -2,46 +2,59 @@ const mongoose = require('mongoose');
 const { MongoError } = require('mongodb');
 const User = mongoose.model('users');
 const Profile = mongoose.model('profiles');
-const { ValidationError } = require('../helpers/errors');
+const { ValidationError, NotFoundError } = require('../helpers/errors');
+
+function createEmptyProfile(UserId) {
+  return new Profile({ UserId });
+}
 
 exports.MyProfile = (req, res, next) => {
-  Profile.findOne({ UserId: req.user._id })
-    .then((profile) => {
+  Profile
+    .findOne({ UserId: req.user._id })
+    .then(profile => {
       if (!profile) {
-        new Profile({ UserId: req.user._id })
-          .save()
-          .then((createdProfile) => {
-            return res.status(201).json(createdProfile);
-          });
+        const newProfile = createEmptyProfile(req.user._id);
+        return newProfile.save();
       }
-      return res.status(200).json(profile);
+      return Promise.resolve(profile);
     })
-    .catch((error) => next(new Error(`Could not retrieve user profile data. ${error.message}`)));
+    .then(profile => {
+      return res.status(200)
+        .json(profile);
+    })
+    .catch(err => next(err));
 };
 
 exports.UpdateProfile = (req, res, next) => {
   const { FullName, PublicEmail, FacebookURL, TwitterURL, InstagramURL, YouTubeURL } = req.body;
   const IsOrganization = req.body.IsOrganization === 'on' ? true : false;
-  Profile.findOneAndUpdate(
-    { UserId: req.user._id },
-    { FullName, PublicEmail, FacebookURL, TwitterURL, InstagramURL, YouTubeURL, IsOrganization },
-    { upsert: true, new: true, runValidators: true }
-  )
-    .then((profile) => {
-      return res.status(200).json(profile);
-    })
-    .catch((error) => next(new ValidationError(`Could not update user profile data. ${error.message}`)));
+  Profile
+    .findOneAndUpdate(
+      { UserId: req.user._id },
+      { FullName, PublicEmail, FacebookURL, TwitterURL, InstagramURL, YouTubeURL, IsOrganization },
+      { upsert: true, new: true, runValidators: true }
+    )
+    .then(profile => res.sendStatus(204))
+    .catch(err => next(new ValidationError(`Could not update user profile data. ${err.message}`)));
 };
 
 exports.UserProfile = (req, res, next) => {
   const { UserId } = req.params;
-  Profile.findOne({ UserId })
-    .then((profile) => {
-      if (!profile) {
-        const emptyProfile = new Profile({ UserId });
-        return res.status(200).json(emptyProfile);
-      }
-      return res.status(200).json(profile);
+  User.findOne({ _id: UserId })
+    .then(user => {
+      if (!user) return Promise.reject(new NotFoundError('User not found.'));
+      return Profile.findOne({ UserId: user._id });
     })
-    .catch((error) => next(new Error(`Could not retrieve user profile data. ${error.message}`)));
+    .then(profile => {
+      if (!profile) {
+        const newProfile = createEmptyProfile(UserId);
+        return newProfile.save();
+      }
+      return Promise.resolve(profile);
+    })
+    .then(profile => {
+      return res.status(200)
+        .json(profile);
+    })
+    .catch(err => next(err));
 };

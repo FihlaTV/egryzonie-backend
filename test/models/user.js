@@ -22,91 +22,105 @@ describe('User Model', () => {
     mongoose.connection.collections.users.drop(() => done());
   });
 
-  describe('validation of basic fields', () => {
-    describe('email', () => {
-      it('returns errors if Nickname or Email is empty', () => {
-        const user = new User();
-        const err = user.validateSync();
-        expect(err.errors.Nickname).to.exist;
-        expect(err.errors.Email).to.exist;
-      });
-      it('returns errors if Email is invalid', () => {
-        const user = new User({
-          Email: 'invalid@email#'
-        });
-        const err = user.validateSync();
-        expect(err.errors).to.exist;
-        expect(err.errors).to.have.property('Email');
-        expect(err.errors.Email.properties.message).to.equal('invalid e-mail');
-      });
+
+  /**
+   * Validation of fields
+   */
+  describe('## Validation of fields', () => {
+    // Overall payload
+    it('# Accepts valid payload', () => {
+      const user = new User(validUserPayload);
+      const err = user.validateSync();
+      expect(err).to.be.undefined;
     });
 
-    describe('nickname', () => {
-      it('returns error if Nickname is invalid', () => {
-        const user = new User({
-          Nickname: 'eve',
-          Email: 'kontakt@patrykb.pl'
-        });
-        const err = user.validateSync();
-        expect(err.errors).to.exist;
-        expect(err.errors).to.have.property('Nickname');
-        expect(err.errors.Nickname.properties.message).to.equal('invalid nickname');
+    // Email
+    it('# Returns errors if Nickname or Email is empty', () => {
+      const user = new User();
+      const err = user.validateSync();
+      expect(err.errors.Nickname).to.exist;
+      expect(err.errors.Email).to.exist;
+    });
+    it('# Returns errors if Email is invalid', () => {
+      const user = new User({
+        Email: 'invalid@email#'
       });
-      it('returns error if Nickname contains illegal characters', () => {
-        const user = new User({
-          Nickname: 'eve###',
-          Email: 'kontakt@patrykb.pl'
-        });
-        const err = user.validateSync();
-        expect(err.errors.Nickname).to.exist;
-        expect(err.errors).to.have.property('Nickname');
-        expect(err.errors.Nickname.properties.message).to.equal('invalid nickname');
-      });
+      const err = user.validateSync();
+      expect(err.errors).to.exist;
+      expect(err.errors).to.have.property('Email');
+      expect(err.errors.Email.properties.message).to.equal('invalid e-mail');
     });
 
-    describe('role', () => {
-      it('has default role "user"', () => {
-        const user = new User(validUserPayload);
-        const err = user.validateSync();
-        expect(user.Role).to.equal('user');
+    // Nickname
+    it('# Returns error if Nickname is invalid', () => {
+      const user = new User({
+        Nickname: 'eve',
+        Email: 'kontakt@patrykb.pl'
       });
-      it('does not allow incorrect role', () => {
-        const user = new User({
-          ...validUserPayload,
-          Role: 'someInvalidRole'
-        });
-        const err = user.validateSync();
-        expect(err.errors).to.exist;
-        expect(err.errors).to.have.property('Role');
-        expect(err.errors.Role.properties.message).to.equal('invalid role');
-      });
+      const err = user.validateSync();
+      expect(err.errors).to.exist;
+      expect(err.errors).to.have.property('Nickname');
+      expect(err.errors.Nickname.properties.message).to.equal('invalid nickname');
     });
-  });
-
-  describe('validation of additional fields', () => {
-    describe('avatar url', () => {
-      it('rejects invalid avatar URL', () => {
-        const user = new User({
-          ...validUserPayload,
-          AvatarURL: 'httpurl/image.image.jpeg'
-        });
-        const err = user.validateSync();
-        expect(err.errors).to.exist;
-        expect(err.errors).to.have.property('AvatarURL');
-        expect(err.errors.AvatarURL.properties.message).to.equal('invalid image URL');
+    it('# Returns error if Nickname contains illegal characters', () => {
+      const user = new User({
+        Nickname: 'eve###',
+        Email: 'kontakt@patrykb.pl'
       });
-      it('accepts valid avatar URL', () => {
-        const user = new User({
-          ...validUserPayload,
-          AvatarURL: 'http://google.com/url/image.image.jpeg'
-        });
-        const err = user.validateSync();
-        expect(err).to.be.undefined;
-      })
+      const err = user.validateSync();
+      expect(err.errors.Nickname).to.exist;
+      expect(err.errors).to.have.property('Nickname');
+      expect(err.errors.Nickname.properties.message).to.equal('invalid nickname');
+    });
+
+    // Role
+    it('# Has default role "user"', () => {
+      const user = new User(validUserPayload);
+      const err = user.validateSync();
+      expect(user.Role).to.equal('user');
+    });
+    it('# Does not allow incorrect role', () => {
+      const user = new User({
+        ...validUserPayload,
+        Role: 'someInvalidRole'
+      });
+      const err = user.validateSync();
+      expect(err.errors).to.exist;
+      expect(err.errors).to.have.property('Role');
+      expect(err.errors.Role.properties.message).to.equal('invalid role');
     });
   });
 
-  describe('password encryption', () => {
+  
+  /**
+   * Validation of extra fields
+   */
+  describe('## Validation of extra fields', () => {
+    it('# Rejects invalid avatar URL', () => {
+      const user = new User({
+        ...validUserPayload,
+        AvatarURL: 'httpurl/image.image.jpeg'
+      });
+      const err = user.validateSync();
+      expect(err.errors).to.exist;
+      expect(err.errors).to.have.property('AvatarURL');
+      expect(err.errors.AvatarURL.properties.message).to.equal('invalid image URL');
+    });
+    it('# Accepts valid avatar URL', () => {
+      const user = new User({
+        ...validUserPayload,
+        AvatarURL: 'http://google.com/url/image.image.jpeg'
+      });
+      const err = user.validateSync();
+      expect(err).to.be.undefined;
+    });
+  });
+
+
+  /**
+   * Password encryption
+   */
+  describe('## Password encryption', () => {
     it('hashes the password before saving', (done) => {
       const user = new User({
         Nickname: 'Valid Nickname',
@@ -115,7 +129,7 @@ describe('User Model', () => {
       });
       user.save((err) => {
         expect(err).to.be.null;
-        expect(user.Password).to.match(/^\$2a\$/);
+        expect(user.Password).to.match(/^\$2[a-d]\$/);
         done();
       });
     });

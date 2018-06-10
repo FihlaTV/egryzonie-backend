@@ -2,6 +2,7 @@ const passport = require('passport');
 const jwt = require('jsonwebtoken');
 const mongoose = require('mongoose');
 const { MongoError } = require('mongodb');
+const { NotFoundError } = require('../helpers/errors');
 
 const secrets = require('../../config/secrets');
 const User = mongoose.model('users');
@@ -13,22 +14,17 @@ function createToken(user) {
   });
 }
 
-exports.Me = (req, res, next) => {
-  User.findOne({ _id: req.user.id })
-    .select('Id Nickname Email Role AvatarURL')
-    .then((user) => {
-      return res.json({ user });
-    })
-    .catch((error) => next(new Error('Error during fetching user.', error.message)));
-};
-
 exports.CreateToken = (req, res, next) => {
+  if (!req.user) return next(new Error('Could not create token.'));
   const jwtToken = createToken(req.user);
   return res.status(201).send({ jwtToken });
 };
 
 exports.VerifyToken = (req, res, next) => {
   User.getLoginData(req.user.id)
-    .then(user => res.json(user))
-    .catch(error => next(new Error('Error during login verification.' + error.message)));
+    .then(user => {
+      if (!user) return Promise.reject(new NotFoundError('User not found.'));
+      return res.json(user);
+    })
+    .catch(err => next(err));
 };

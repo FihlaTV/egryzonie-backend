@@ -1,4 +1,5 @@
 const path = require('path');
+const fs = require('fs');
 const express = require('express');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
@@ -6,11 +7,12 @@ const bodyParser = require('body-parser');
 const passport = require('passport');
 const cors = require('cors');
 const morgan = require('morgan');
-
-console.log(process.env.NODE_ENV);
+const endpoints = require('express-list-endpoints');
 
 // Logger
 const logger = require('./src/logger');
+
+logger.info('Current environment: ', process.env.NODE_ENV);
 
 // Dotenv config
 dotenv.config({ path: path.resolve(process.cwd(), 'environment', `.${process.env.NODE_ENV.trim()}.env`) });
@@ -33,6 +35,15 @@ if (process.env.NODE_ENV === 'development') {
   }));
 }
 
+if (process.env.NODE_ENV === 'test') {
+  const date = new Date();
+  const datetime = `${date.getFullYear()}-${(date.getMonth() + 1)}-${date.getDate()}-${('0'+date.getHours()).slice(-2)}${date.getMinutes()}${date.getSeconds()}`;
+
+  app.use(morgan('common', {
+    stream: fs.createWriteStream(`./test/logs/tests-${datetime}.log`, { flags: 'a' })
+  }));
+}
+
 // Mongoose models
 require('./src/models');
 
@@ -52,9 +63,7 @@ const host = process.env.HOST;
 const port = process.env.PORT || process.env.FALLBACK_PORT;
 const protocol = process.env.USE_SSL === true ? 'https' : 'http';
 
-// Start the server
 module.exports = new Promise(async (resolve, reject) => {
-  console.log('trying to start server');
   try {
     await mongoose.connect(`mongodb://${process.env.MONGO_HOST}/${process.env.MONGO_DB}`);
     if (process.env.NODE_ENV === 'test') {
@@ -67,6 +76,6 @@ module.exports = new Promise(async (resolve, reject) => {
     });
   } catch (error) {
     console.error(error.message);
-    reject();
+    throw error;
   }
 });

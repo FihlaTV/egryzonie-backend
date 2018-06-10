@@ -4,11 +4,6 @@ const { wrapAsync } = require('../helpers/async');
 const controller = require('../controllers/auth');
 const { jwtSession } = require('../../config/secrets');
 
-router.get(
-  '/me',
-  controller.Me
-);
-
 router.post(
   '/signup',
   passport.authenticate('local-signup'),
@@ -38,6 +33,5 @@ router.get(
   passport.authenticate('jwt', jwtSession),
   controller.VerifyToken
 );
-
 
 module.exports = router;
