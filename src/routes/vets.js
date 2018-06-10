@@ -15,17 +15,16 @@ router.get(
 );
 
 
+
 /**
- * GET /find_nearby/:range/:lat/:lng
- * @param range (Integer) Range from center.
- * @param lat (Float) Longitude of origin.
- * @param lng (Float) Longitude of origin.
+ * POST /find_nearby
  */
-router.get(
-  '/find_nearby/:range?/:lat?/:lng?',
+router.post(
+  '/find_nearby',
   policy.findInRange,
   controller.findInRange
 );
+
 
 
 /**
