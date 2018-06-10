@@ -4,6 +4,7 @@ const request = require('supertest');
 const faker = require('faker');
 const server = require('../../app');
 const { signUp, createUsers, createVets } = require('../helpers');
+const logger = require('../../src/logger');
 
 describe('/vets routes', function() {
   this.timeout(25000);
@@ -17,18 +18,18 @@ describe('/vets routes', function() {
 
   before(async () => {
     // Retrieve app & mongoose objects
-    ({ app, mongoose } = await server.catch(err => console.error(err)));
+    ({ app, mongoose } = await server.catch(err => logger.error(err)));
 
     // Models
     const User = mongoose.model('users');
     const Vet = mongoose.model('vets');
 
     // First clear database from users
-    await User.remove({}).catch(err => console.error(err));
-    await Vet.remove({}).catch(err => console.error(err));
+    await User.remove({}).catch(err => logger.error(err));
+    await Vet.remove({}).catch(err => logger.error(err));
 
     // Sign up new user for tests
-    ({ user, token } = await signUp(app, request).catch(err => console.error(err)));
+    ({ user, token } = await signUp(app, request).catch(err => logger.error(err)));
 
     // Create example vets & users
     const exampleUsers = await createUsers(mongoose);
@@ -91,25 +92,49 @@ describe('/vets routes', function() {
     });
 
     // Find one by ID
-    describe('# GET /vets/show/:id', () => {
+    describe('# GET /vets/find_one/:id', () => {
       it('Returns 404 (Not Found) when invalid ID is provided', (done) => {
         request(app)
-          .get('/vets/show/45bz80acb2353e03567824db')
+          .get('/vets/find_one/507f1f77bcf86cd799439011')
           .expect(404)
           .end((err, res) => {
             if (err) throw err;
             expect(res.body).to.be.empty;
+            done();
+          });
+      });
+      it('Returns 400 (Bad Request) when ID is missing', (done) => {
+        request(app)
+          .get('/vets/find_one')
+          .expect(400)
+          .end((err, res) => {
+            if (err) throw err;
+            expect(res.body).to.have.property('message')
+            expect(res.body.message).to.match(/id is missing/);
+            done();
+          });
+      });
+      it('Returns 400 (Bad Request) when ID has invalid format', (done) => {
+        request(app)
+          .get('/vets/find_one/SomeInvalidID')
+          .expect(400)
+          .end((err, res) => {
+            if (err) throw err;
+            expect(res.body).to.have.property('message');
+            expect(res.body.message).to.match(/id has invalid format/);
+            done();
           });
       });
       it('Returns 200 (OK) when valid ID is provided', (done) => {
         request(app)
-          .get(`/vets/show/${vets[0]._id}`)
+          .get(`/vets/find_one/${vets[0]._id}`)
           .expect(200)
           .end((err, res) => {
             if (err) throw err;
             expect(res.body).to.not.be.empty;
             expect(res.body).to.be.an('object');
             expect(res.body).to.have.property('Name');
+            done();
           });
       });
     });
@@ -120,7 +145,7 @@ describe('/vets routes', function() {
    * POST routes
    */
   describe('### POST /vets', () => {
-    describe('## POST /search', () => {
+    describe('## POST /vets/search', () => {
       it('# Returns an array when valid name or address is present', (done) => {
         const search = vets[0].Address.substring(0, vets[0].Address.indexOf(' ', 9));
         request(app)

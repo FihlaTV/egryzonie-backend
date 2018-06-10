@@ -1,7 +1,27 @@
 const { BadRequestError } = require('../helpers/errors');
 
 /**
+ * GET /find_one/:id
+ * Find one by ID
+ */
+exports.findById = (req, res, next) => {
+  const { id } = req.params;
+
+  if (!id || !id.length) {
+    return next(new BadRequestError('id is missing'));
+  }
+
+  if (!/^[a-f\d]{24}$/i.test(id)) {
+    return next(new BadRequestError('id has invalid format'));
+  }
+
+  return next();
+};
+
+
+/**
  * Find by range and coordinates
+ * GET /find_nearby/:range/:lat/:lng
  */
 exports.findInRange = (req, res, next) => {
   const { range, lat, lng } = req.params;

@@ -1,4 +1,5 @@
 const faker = require('faker');
+const logger = require('../src/logger');
 
 function randomizr(arr, single = true) {
   if (!Array.isArray(arr)) throw new Error('first argument must be an array');
@@ -27,8 +28,7 @@ exports.signUp = function(app, request) {
       .expect(201)
       .end((err, res) => {
         if (err) throw err;
-
-        console.log(`New user signed up. Token: ${res.body.jwtToken}\n`);
+        logger.info(`New user signed up. Token: ${res.body.jwtToken}\n`);
         resolve({ userPayload, token: res.body.jwtToken });
       });
   });

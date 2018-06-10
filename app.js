@@ -9,10 +9,10 @@ const cors = require('cors');
 const morgan = require('morgan');
 const endpoints = require('express-list-endpoints');
 
-console.log('Current environment: ', process.env.NODE_ENV);
-
 // Logger
 const logger = require('./src/logger');
+
+logger.info('Current environment: ', process.env.NODE_ENV);
 
 // Dotenv config
 dotenv.config({ path: path.resolve(process.cwd(), 'environment', `.${process.env.NODE_ENV.trim()}.env`) });
@@ -36,8 +36,11 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 if (process.env.NODE_ENV === 'test') {
+  const date = new Date();
+  const datetime = `${date.getFullYear()}-${(date.getMonth() + 1)}-${date.getDate()}-${('0'+date.getHours()).slice(-2)}${date.getMinutes()}${date.getSeconds()}`;
+
   app.use(morgan('common', {
-    stream: fs.createWriteStream('./test/tests.log', { flags: 'a' })
+    stream: fs.createWriteStream(`./test/logs/tests-${datetime}.log`, { flags: 'a' })
   }));
 }
 

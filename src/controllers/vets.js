@@ -5,8 +5,31 @@ const User = mongoose.model('users');
 const Vet = mongoose.model('vets');
 const { ValidationError, NotFoundError } = require('../helpers/errors');
 
+
+/**
+ * GET /find_one/:id
+ * Find single Vet place
+ */
+exports.findById = async (req, res, next) => {
+  const { id } = req.params;
+
+  const vet = await Vet
+    .findById(id)
+    .catch(err => {
+      logger.error(err);
+      next(new MongoError(err));
+    });
+
+  if (!vet) {
+    return res.sendStatus(404);
+  }
+  return res.status(200).json(vet);
+};
+
+
 /**
  * Find by range and coordinates
+ * GET /find_nearby/:range/:lat/:lng
  */
 exports.findInRange = async (req, res, next) => {
   const { range, lat, lng } = req.params;
@@ -20,6 +43,7 @@ exports.findInRange = async (req, res, next) => {
 
   return res.status(200).json(vets);
 };
+
 
 /**
  * Find name or address
