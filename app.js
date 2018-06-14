@@ -12,7 +12,7 @@ const endpoints = require('express-list-endpoints');
 // Logger
 const logger = require('./src/logger');
 
-logger.info('Current environment: ', process.env.NODE_ENV);
+logger.info(`Current environment: ${process.env.NODE_ENV}`);
 
 // Dotenv config
 dotenv.config({ path: path.resolve(process.cwd(), 'environment', `.${process.env.NODE_ENV.trim()}.env`) });

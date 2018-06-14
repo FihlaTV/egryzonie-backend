@@ -1,5 +1,5 @@
 const { MongoError } = require('mongodb');
-const { BadRequestError, ValidationError, NotFoundError } = require('../helpers/errors');
+const { BadRequestError, ValidationError, NotFoundError } = require('../helpers/errors.helper');
 const logger = require('../logger');
 
 module.exports = (app) => {
