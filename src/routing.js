@@ -1,8 +1,8 @@
 const router = require('express').Router();
-const home = require('./routes/home');
-const auth = require('./routes/auth');
-const profile = require('./routes/profile');
-const vets = require('./routes/vets');
+const home = require('./routes/home.route');
+const auth = require('./routes/auth.route');
+const profile = require('./routes/profile.route');
+const vets = require('./routes/vets.route');
 
 router.use('/', home);
 router.use('/auth', auth);

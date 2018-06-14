@@ -1,7 +1,7 @@
 const { describe, it, before, beforeEach } = require('mocha');
 const { expect } = require('chai');
 const mongoose = require('mongoose');
-require('../../src/models/user');
+require('../../src/models/user.model');
 
 const User = mongoose.model('users');
 const validUserPayload = {

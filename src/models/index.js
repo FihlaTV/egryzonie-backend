@@ -1,3 +1,3 @@
-require('./user');
-require('./profile');
-require('./vet');
+require('./user.model');
+require('./profile.model');
+require('./vet.model');
