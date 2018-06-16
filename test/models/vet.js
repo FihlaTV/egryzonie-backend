@@ -14,7 +14,7 @@ describe('Vet Model', function () {
   let vet;
 
   const vetPayload = {
-    GoogleMapsID: 'ChIJQ8EgpGpDBEcR1d0wYZTGPbI',
+    GoogleMapsID: 'ChIJQ8EgpGpDBEcR1d0wYZTGPbJ',
     Position: [ 52.458631, 16.905277 ],
     Name: 'Centrum Zdrowia Małych Zwierząt',
     Address: 'Osiedle Władysława Jagiełły 33, 60-694 Poznań',
@@ -97,6 +97,26 @@ describe('Vet Model', function () {
 
 
   /**
+   * Hooks
+   */
+  describe('## Hooks', () => {
+    describe('# Pre-validate hooks', () => {
+      it('Generates a valid slug', async () => {
+        const newVet = new Vet({ ...vetPayload });
+        const err = newVet.validateSync();
+        await newVet.save().catch(err => console.error(err));
+        expect(newVet.Slug).to.exist;
+        expect(newVet.Slug).to.match(/^[a-z0-9\-]{5,}$/);
+        // we're inserting a new "Centrum Zdrowia Małych Zwierząt", which isn't the first in the database;
+        // so we're expecting to find a number as a prefix for the slug
+        const firstPart = newVet.Slug.slice(0, newVet.Slug.indexOf('-'));
+        expect(firstPart).to.match(/^[0-9]{1,}$/);
+      });
+    });
+  });
+
+
+  /**
    * Static methods
    */
   describe('## Static methods', () => {
@@ -114,7 +134,7 @@ describe('Vet Model', function () {
           .catch(error => console.error(error));
         expect(foundVet).to.be.an('array');
         expect(foundVet).to.not.be.empty;
-        expect(foundVet.length).to.equal(1);
+        expect(foundVet.length).to.be.above(0);
         expect(foundVet[0]).to.exist;
         expect(foundVet[0]).to.be.an('object');
         expect(foundVet[0]).to.have.property('GoogleMapsID');
@@ -141,7 +161,7 @@ describe('Vet Model', function () {
           .catch(error => console.error(error));
         expect(foundVet).to.not.be.empty;
         expect(foundVet).to.be.an('array');
-        expect(foundVet.length).to.equal(1);
+        expect(foundVet.length).to.be.above(0);
         expect(foundVet[0]).to.exist;
         expect(foundVet[0]).to.be.an('object');
         expect(foundVet[0]).to.have.property('Address');
@@ -154,7 +174,7 @@ describe('Vet Model', function () {
           .catch(error => console.error(error));
         expect(foundVets).to.not.be.empty;
         expect(foundVets).to.be.an('array');
-        expect(foundVets.length).to.equal(3);
+        expect(foundVets.length).to.be.above(3);
         for (let i = 0; i < foundVets.length; i++) {
           expect(foundVets[i]).to.exist;
           expect(foundVets[i]).to.be.an('object');

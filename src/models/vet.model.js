@@ -1,12 +1,12 @@
-const logger = require('../logger');
+
 const mongoose = require('mongoose');
+const latinize = require('latinize');
 require('mongoose-double')(mongoose);
 const { Schema } = mongoose;
+const logger = require('../logger');
 
 const GeoSchema = require('./geoschema.model');
 const User = require('./user.model');
-
-
 
 /***** SCHEMA DEFINITION ******/
 
@@ -30,6 +30,9 @@ const VetSchema = new Schema({
       },
       message: 'invalid coordinates'
     }
+  },
+  Slug: {
+    type: String
   },
   Name: {
     type: String,
@@ -82,7 +85,25 @@ const VetSchema = new Schema({
 // Indexes
 VetSchema.index({ Position: '2dsphere' });
 
+/***** HOOKS ******/
 
+/**
+ * Generates a friendly URL from name when Vet is saved to db
+ */
+VetSchema.pre('save', async function GenerateFriendlyURL() {
+  if (this.Slug && this.Slug.length) return;
+  let slug = latinize(this.Name)
+    .toLowerCase()
+    .replace(/\s+/g, '-');
+  const foundVet = await mongoose.model('vets')
+    .findOne({ Slug: { $regex: slug } })
+    .sort('Slug');
+  if (foundVet) {
+    const lastNum = +(foundVet.Slug.slice(0, foundVet.Slug.indexOf('-')));
+    slug = `${(lastNum + 1)}-${slug}`;
+  }
+  this.Slug = slug;
+});
 
 /***** STATIC METHODS ******/
 
