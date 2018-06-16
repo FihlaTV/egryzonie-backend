@@ -30,6 +30,28 @@ exports.findById = async (req, res, next) => {
 
 
 /**
+ * GET /:slug/view
+ * Find single Vet place
+ */
+exports.findBySlug = async(req, res, next) => {
+  const { slug } = req.params;
+
+  const vet = await Vet
+    .findBySlug(slug)
+    .catch(err => {
+      logger.error(err);
+      next(new MongoError(err));
+    });
+
+  if (!vet) {
+    return res.sendStatus(404);
+  }
+  return res.status(200).json(vet);
+};
+
+
+
+/**
  * Creates a search and finds Vets by range and coordinates
  * POST /find_nearby
  */

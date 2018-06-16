@@ -14,6 +14,15 @@ router.get(
 );
 
 /**
+ * GET /:slug/view
+ */
+router.get(
+  '/:slug/view',
+  policy.findBySlug,
+  controller.findBySlug
+);
+
+/**
  * POST /find_nearby
  */
 router.post(

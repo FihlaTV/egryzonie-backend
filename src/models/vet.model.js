@@ -144,6 +144,15 @@ VetSchema.statics.findByNameOrAddress = function(search) {
 };
 
 /**
+ * Used to retrieve one vet with specific Slug.
+ * @param {string} slug
+ * @returns {Promise} query results
+ */
+VetSchema.statics.findBySlug = function(slug) {
+  return this.findOne({ Slug: slug });
+};
+
+/**
  * Used to retrieve all users who suggested selected Vet.
  * @param {String} vetId ID string for selected Vet
  * @returns {Array} An array of user references

@@ -21,6 +21,22 @@ exports.findById = (req, res, next) => {
 
 
 /**
+ * GET /:slug/view
+ * Find single Vet place
+ */
+exports.findBySlug = async(req, res, next) => {
+  const { slug } = req.params;
+
+  if (!/^[a-z0-9-]{1,}$/.test(slug)) {
+    return next(new BadRequestError('slug is invalid'));
+  }
+
+  return next();
+};
+
+
+
+/**
  * Find by range and coordinates
  * POST /find_nearby/:range/:lat/:lng
  */

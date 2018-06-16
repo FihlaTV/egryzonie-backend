@@ -90,6 +90,44 @@ describe('/vets routes', function() {
           });
       });
     });
+
+    // Find one by Slug
+    describe('# GET /vets/:slug/view', () => {
+      it('Returns 400 (Bad Request) when Slug is invalid', (done) => {
+        request(app)
+          .get('/vets/abc_-asdf123/view')
+          .expect(400)
+          .end((err, res) => {
+            if (err) throw err;
+            expect(res.body).to.have.property('message');
+            expect(res.body.message).to.match(/slug is invalid/i);
+            done();
+          });
+      });
+      it('Returns 404 (Not Found) when vet is not found', (done) => {
+        request(app)
+          .get('/vets/some-valid-slug/view')
+          .expect(404)
+          .end((err, res) => {
+            if (err) throw err;
+            expect(res.body).to.be.empty;
+            done();
+          });
+      });
+      it('Returns 200 (OK) when Slug is valid', (done) => {
+        request(app)
+          .get(`/vets/${vets[0].Slug}/view`)
+          .expect(200)
+          .end((err, res) => {
+            if (err) throw err;
+            expect(res.body).to.not.be.empty;
+            expect(res.body).to.be.an('object');
+            expect(res.body).to.have.property('Name');
+            expect(res.body.Name).to.equal(vets[0].Name);
+            done();
+          });
+      });
+    });
   });
 
 
