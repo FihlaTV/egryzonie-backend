@@ -1,5 +1,6 @@
+const path = require('path');
 const faker = require('faker');
-const logger = require('../src/logger');
+const logger = require(path.resolve('src/core/logger'));
 
 function randomizr(arr, single = true) {
   if (!Array.isArray(arr)) throw new Error('first argument must be an array');
