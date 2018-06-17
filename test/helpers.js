@@ -1,5 +1,6 @@
+const path = require('path');
 const faker = require('faker');
-const logger = require('../src/logger');
+const logger = require(path.resolve('src/core/logger'));
 
 function randomizr(arr, single = true) {
   if (!Array.isArray(arr)) throw new Error('first argument must be an array');
@@ -68,8 +69,24 @@ exports.createVets = function(mongoose, users) {
 
   const exampleVets = [
     new Vet({
+      GoogleMapsID: 'ChIJ_RRLtDUcBEcREip9_VldDA4',
+      Position: [ 52.706478, 16.380725 ],
+      Slug: 'centrum-zdrowia-malych-zwierzat',
+      Name: 'Centrum Zdrowia Małych Zwierząt',
+      Address: 'Poznańska 63A, 64-510 Wronki',
+      Rodents: true,
+      ExoticAnimals: true,
+      WebsiteURL: 'http://centrum-wet.pl/',
+      Phone: '510 517 636',
+      Accepted: true,
+      AcceptedDate: new Date('01/01/2016'),
+      SuggestedBy: [users[0], users[1]],
+      AcceptedBy: users.find(u => u.Role === 'admin')
+    }),
+    new Vet({
       GoogleMapsID: 'ChIJQ8EgpGpDBEcR1d0wYZTGPbI',
       Position: [ 52.458631, 16.905277 ],
+      Slug: '2-centrum-zdrowia-malych-zwierzat',
       Name: 'Centrum Zdrowia Małych Zwierząt',
       Address: 'Osiedle Władysława Jagiełły 33, 60-694 Poznań',
       Rodents: true,
@@ -84,6 +101,7 @@ exports.createVets = function(mongoose, users) {
     new Vet({
       GoogleMapsID: 'ChIJqzOyrPj7H0cRuNJG3u1SvGk',
       Position: [ 53.122827, 23.152517 ],
+      Slug: 'przychodnia-malych-zwierzat',
       Name: 'Przychodnia Małych Zwierząt',
       Address: 'Wesoła 16, 15-306 Białystok',
       Rodents: true,
@@ -98,6 +116,7 @@ exports.createVets = function(mongoose, users) {
     new Vet({
       GoogleMapsID: 'ChIJGZF6IAj7PEcRuvpLFvLUIXI',
       Position: [ 50.035121, 21.985198 ],
+      Slug: 'zdrowa-lapa-centrum-aktywnosci-i-rehabilitacji-malych-zwierzat',
       Name: 'Zdrowa Łapa Centrum Aktywności i Rehabilitacji Małych Zwierząt',
       Address: 'Dębowa 12, 35-113 Rzeszów',
       Rodents: true,

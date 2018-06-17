@@ -10,7 +10,7 @@ const morgan = require('morgan');
 const endpoints = require('express-list-endpoints');
 
 // Logger
-const logger = require('./src/logger');
+const logger = require(path.join(__dirname, 'src/core/logger'));
 
 logger.info(`Current environment: ${process.env.NODE_ENV}`);
 
@@ -40,23 +40,25 @@ if (process.env.NODE_ENV === 'test') {
   const datetime = `${date.getFullYear()}-${(date.getMonth() + 1)}-${date.getDate()}-${('0'+date.getHours()).slice(-2)}${date.getMinutes()}${date.getSeconds()}`;
 
   app.use(morgan('common', {
-    stream: fs.createWriteStream(`./test/logs/tests-${datetime}.log`, { flags: 'a' })
+    stream: fs.createWriteStream(path.resolve(`test/logs/tests-${datetime}.log`), { flags: 'a' })
   }));
 }
 
 // Mongoose models
-require('./src/models');
+require(path.resolve('src/modules/profile/profile.model'));
+require(path.resolve('src/modules/user/user.model'));
+require(path.resolve('src/modules/vets/vet.model'));
 
 // Passport initialization
-require('./src/passport');
+require(path.resolve('src/core/passport'));
 app.use(passport.initialize());
 app.use(passport.session());
 
 // Routing
-app.use(require('./src/routing'));
+app.use(require(path.resolve('src/core/routing')));
 
 // Errors Middleware
-require('./src/middlewares/error-handling')(app);
+require(path.resolve('src/core/middlewares/error-handling'))(app);
 
 // Server variables
 const host = process.env.HOST;
